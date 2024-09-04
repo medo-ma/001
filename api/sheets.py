@@ -95,17 +95,17 @@ class handler(BaseHTTPRequestHandler):
                 spreadsheetId=SPREADSHEET_ID, range=range_).execute()
             values = result.get('values', [])
             
-            # Search for the query in the specified columns
+            # Search for the query in the specified columns and include row numbers
             matching_rows = []
             column_indices = [ord(col.upper()) - ord('A') for col in columns]
             
-            for row in values:
+            for row_index, row in enumerate(values, start=1):  # Row numbers start at 1
                 for index in column_indices:
                     if len(row) > index and search_query in row[index]:
-                        matching_rows.append(row)
+                        matching_rows.append({'row_number': row_index, 'row_data': row})
                         break
             
-            # Send the response with matching rows
+            # Send the response with matching rows and their row numbers
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
