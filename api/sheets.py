@@ -5,13 +5,17 @@ from googleapiclient.discovery import build
 
 # Set up Google Sheets API
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-SERVICE_ACCOUNT_FILE = '/hospital-434613-5eeb06d5c9f4.json'  # Ensure this path is correct
+SERVICE_ACCOUNT_FILE = os.environ.get('/hospital-434613-5eeb06d5c9f4.json')
 
-credentials = Credentials.from_service_account_file(
-    SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-service = build('sheets', 'v4', credentials=credentials)
+try:
+    credentials = Credentials.from_service_account_file(
+        SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+    service = build('sheets', 'v4', credentials=credentials)
+except Exception as e:
+    print(f"Failed to create Google Sheets service: {e}")
+    raise
 
-SPREADSHEET_ID = '1422800992'  # Replace with your Google Sheets ID
+SPREADSHEET_ID = '14B1_20Ix3CjgrUxijbYpIhpFQVa1ai3'  # Replace with your Google Sheets ID
 
 def handler(request, context):
     try:
@@ -42,6 +46,7 @@ def handler(request, context):
                 "body": json.dumps({'error': 'Method Not Allowed'})
             }
     except Exception as e:
+        print(f"Error processing request: {e}")
         return {
             "statusCode": 500,
             "body": json.dumps({'error': str(e)})
