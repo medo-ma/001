@@ -61,7 +61,7 @@ class handler(BaseHTTPRequestHandler):
             query = self.path.split('?')[1] if '?' in self.path else ''
             params = dict(p.split('=') for p in query.split('&') if '=' in p)
             
-            range_ = params.get('range', 'Sheet1!A1:D10')  # Default range if not provided
+            range_ = params.get('range', 'Sheet1!')  # Default range if not provided
             
             # Validate the range format
             if not range_.startswith('Sheet1!'):
