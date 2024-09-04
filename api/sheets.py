@@ -96,7 +96,7 @@ class handler(BaseHTTPRequestHandler):
         if count_in_row:
             # Fetch data from the Google Sheets API
             sheet = service.spreadsheets()
-            range_ = 'Sheet1!A1:Z1000'  # Adjust range as needed
+            range_ = 'Sheet1!A1:BZ1000'  # Adjust range as needed
             result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=range_).execute()
             values = result.get('values', [])
 
@@ -129,7 +129,7 @@ class handler(BaseHTTPRequestHandler):
 
         # Fetch data from the Google Sheets API
         sheet = service.spreadsheets()
-        range_ = 'Sheet1!A1:Z1000'  # Adjust range as needed
+        range_ = 'Sheet1!A1:BZ1000'  # Adjust range as needed
         result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=range_).execute()
         values = result.get('values', [])
 
