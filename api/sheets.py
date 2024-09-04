@@ -6,7 +6,7 @@ from http.server import BaseHTTPRequestHandler
 
 # Set up Google Sheets API
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-SERVICE_ACCOUNT_FILE = '/client_sec.json'  # Store this securely
+SERVICE_ACCOUNT_FILE = './hospital-434613-5eeb06d5c9f4.json'  # Store this securely
 
 credentials = Credentials.from_service_account_file(
     SERVICE_ACCOUNT_FILE, scopes=SCOPES)
