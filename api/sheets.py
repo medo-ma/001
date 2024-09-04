@@ -11,7 +11,7 @@ credentials = Credentials.from_service_account_file(
     SERVICE_ACCOUNT_FILE, scopes=SCOPES)
 service = build('sheets', 'v4', credentials=credentials)
 
-SPREADSHEET_ID = '14B1_20Ix3CjgrUxijbYpIhpFQVa1ai3'  # Replace with your Google Sheets ID
+SPREADSHEET_ID = '1422800992'  # Replace with your Google Sheets ID
 
 def handler(request, context):
     try:
