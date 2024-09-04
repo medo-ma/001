@@ -20,6 +20,9 @@ SPREADSHEET_ID = '14B1_20Ix3CjgrUxijbYpIhpFQVa1ai3'  # Replace with your Google 
 @app.route('/api/sheets', methods=['POST'])
 def handle_request():
     try:
+        if request.content_type != 'application/json':
+            return jsonify({'error': 'Unsupported Media Type'}), 415
+
         data = request.json
 
         # Handle the request (e.g., read or write data to Google Sheets)
