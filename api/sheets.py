@@ -56,7 +56,7 @@ class handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps({'error': str(e)}).encode())
 
     def do_GET(self):
-    # Parse the query parameters
+        # Parse the query parameters
         query = self.path.split('?')[1] if '?' in self.path else ''
         params = dict(p.split('=') for p in query.split('&') if '=' in p)
 
@@ -79,7 +79,6 @@ class handler(BaseHTTPRequestHandler):
             self.send_header('Content-type', 'application/json')
             self.end_headers()
             self.wfile.write(json.dumps({'error': str(e)}).encode())
-
 
 if __name__ == '__main__':
     app.run(debug=True)
