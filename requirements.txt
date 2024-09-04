@@ -1,8 +1,0 @@
-requests==2.25.1
-flask==2.0.1
-# Add other dependencies here
-
-google-auth
-google-auth-oauthlib
-google-auth-httplib2
-google-api-python-client
