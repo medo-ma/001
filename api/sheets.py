@@ -17,32 +17,40 @@ service = build('sheets', 'v4', credentials=credentials)
 
 SPREADSHEET_ID = '14B1_20Ix3CjgrUxijbYpIhpFQVa1ai3_'  # Replace with your Google Sheets ID
 
-@app.route('/api/sheets', methods=['POST'])
+@app.route('/api/sheets', methods=['POST', 'GET'])
 def handle_request():
-    try:
+    if request.method == 'POST':
         if request.content_type != 'application/json':
             return jsonify({'error': 'Unsupported Media Type'}), 415
 
-        data = request.json
+        try:
+            data = request.json
+            sheet = service.spreadsheets()
+            range_ = "Sheet1!A1:D1"
+            values = [
+                [data['col1'], data['col2'], data['col3'], data['col4']]
+            ]
+            body = {
+                'values': values
+            }
+            result = sheet.values().append(
+                spreadsheetId=SPREADSHEET_ID, range=range_,
+                valueInputOption="RAW", body=body).execute()
 
-        # Handle the request (e.g., read or write data to Google Sheets)
-        sheet = service.spreadsheets()
-        # Example: Append data
-        range_ = "Sheet1!A1:D1"
-        values = [
-            [data.get('col1'), data.get('col2'), data.get('col3'), data.get('col4')]
-        ]
-        body = {
-            'values': values
-        }
-        result = sheet.values().append(
-            spreadsheetId=SPREADSHEET_ID, range=range_,
-            valueInputOption="RAW", body=body).execute()
+            return jsonify({'status': 'success', 'result': result})
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
 
-        return jsonify({'status': 'success', 'result': result})
+    elif request.method == 'GET':
+        try:
+            range_ = "Sheet1!A1:D10"  # Adjust the range as needed
+            result = service.spreadsheets().values().get(
+                spreadsheetId=SPREADSHEET_ID, range=range_).execute()
+            values = result.get('values', [])
 
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+            return jsonify({'status': 'success', 'data': values})
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
