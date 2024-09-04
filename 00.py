@@ -2,13 +2,13 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
 # Path to your service account credentials
-SERVICE_ACCOUNT_FILE = 'path/to/credentials.json'
+SERVICE_ACCOUNT_FILE = '/client_sec.json'
 
 # Google Sheets API scope
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
 # ID of the Google Sheet
-SPREADSHEET_ID = 'your-spreadsheet-id'
+SPREADSHEET_ID = '1435980372'
 
 # Authenticate and build the service
 credentials = service_account.Credentials.from_service_account_file(
