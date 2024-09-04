@@ -57,39 +57,39 @@ class handler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json.dumps({'error': str(e)}).encode())
 
-    def do_GET(self):
-        try:
-            # Parse the query parameters
-            query = self.path.split('?')[1] if '?' in self.path else ''
-            params = dict(p.split('=') for p in query.split('&') if '=' in p)
+    # def do_GET(self):
+    #     try:
+    #         # Parse the query parameters
+    #         query = self.path.split('?')[1] if '?' in self.path else ''
+    #         params = dict(p.split('=') for p in query.split('&') if '=' in p)
             
-            # Decode the URL-encoded range
-            range_ = unquote(params.get('range', 'Sheet1!A1:D10'))
+    #         # Decode the URL-encoded range
+    #         range_ = unquote(params.get('range', 'Sheet1!A1:D10'))
             
-            # Validate the range format
-            if not range_.startswith('Sheet1!'):
-                self.send_response(400)
-                self.send_header('Content-type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({'error': 'Invalid range format'}).encode())
-                return
+    #         # Validate the range format
+    #         if not range_.startswith('Sheet1!'):
+    #             self.send_response(400)
+    #             self.send_header('Content-type', 'application/json')
+    #             self.end_headers()
+    #             self.wfile.write(json.dumps({'error': 'Invalid range format'}).encode())
+    #             return
             
-            sheet = service.spreadsheets()
-            result = sheet.values().get(
-                spreadsheetId=SPREADSHEET_ID, range=range_).execute()
+    #         sheet = service.spreadsheets()
+    #         result = sheet.values().get(
+    #             spreadsheetId=SPREADSHEET_ID, range=range_).execute()
             
-            values = result.get('values', [])
+    #         values = result.get('values', [])
 
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({'status': 'success', 'values': values}).encode())
+    #         self.send_response(200)
+    #         self.send_header('Content-type', 'application/json')
+    #         self.end_headers()
+    #         self.wfile.write(json.dumps({'status': 'success', 'values': values}).encode())
 
-        except Exception as e:
-            self.send_response(500)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({'error': str(e)}).encode())
+    #     except Exception as e:
+    #         self.send_response(500)
+    #         self.send_header('Content-type', 'application/json')
+    #         self.end_headers()
+    #         self.wfile.write(json.dumps({'error': str(e)}).encode())
 
     def do_GET_Search(self):
         try:
