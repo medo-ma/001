@@ -43,7 +43,7 @@ def handle_request():
 
     elif request.method == 'GET':
         try:
-            range_ = "Sheet1!A1:D10"  # Adjust the range as needed
+            range_ = "Sheet1!A1:A10"  # Adjust the range as needed
             result = service.spreadsheets().values().get(
                 spreadsheetId=SPREADSHEET_ID, range=range_).execute()
             values = result.get('values', [])
