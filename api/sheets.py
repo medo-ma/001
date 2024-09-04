@@ -1,9 +1,9 @@
 from flask import Flask, request, jsonify
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
-import os
 import json
 import base64
+import os
 
 app = Flask(__name__)
 
@@ -15,7 +15,7 @@ credentials = Credentials.from_service_account_info(
     json.loads(SERVICE_ACCOUNT_JSON), scopes=SCOPES)
 service = build('sheets', 'v4', credentials=credentials)
 
-SPREADSHEET_ID = '14B1_20Ix3CjgrUxijbYpIhpFQVa1ai3'  # Replace with your Google Sheets ID
+SPREADSHEET_ID = '14B1_20Ix3CjgrUxijbYpIhpFQVa1ai3_'  # Replace with your Google Sheets ID
 
 @app.route('/api/sheets', methods=['POST'])
 def handle_request():
