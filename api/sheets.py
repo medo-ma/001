@@ -91,5 +91,44 @@ class handler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json.dumps({'error': str(e)}).encode())
 
+    def do_GET_Search(self):
+        try:
+            # Parse query parameters
+            query = self.path.split('?')[1] if '?' in self.path else ''
+            params = dict(p.split('=') for p in query.split('&') if '=' in p)
+            range_ = unquote(params.get('range', 'Sheet1!A1:D100')).strip()
+            search_value = params.get('search_value', None)
+            column_index = int(params.get('column_index', 0))  # Assuming 0-based index
+            
+            # Validate the range
+            if not range_.startswith('Sheet1!'):
+                self.send_response(400)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': 'Invalid range format'}).encode())
+                return
+            
+            # Fetch data
+            sheet = service.spreadsheets()
+            result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=range_).execute()
+            values = result.get('values', [])
+            
+            # Filter rows based on the search value
+            if search_value is not None:
+                filtered_rows = [row for row in values if len(row) > column_index and search_value in row[column_index]]
+            else:
+                filtered_rows = values
+            
+            # Send response
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'status': 'success', 'rows': filtered_rows}).encode())
+        
+        except Exception as e:
+            self.send_response(500)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'error': str(e)}).encode())
 if __name__ == '__main__':
     app.run(debug=True)
