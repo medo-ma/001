@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
+from http.server import BaseHTTPRequestHandler
 import json
 import base64
 import os
@@ -17,40 +18,66 @@ service = build('sheets', 'v4', credentials=credentials)
 
 SPREADSHEET_ID = '1pTBX4oVDvXaMm34910DiMMnR0auHVEEPA-QkJxTsrug'  # Replace with your Google Sheets ID
 
-@app.route('/api/sheets', methods=['POST', 'GET'])
-def handle_request():
-    if request.method == 'POST':
-        if request.content_type != 'application/json':
-            return jsonify({'error': 'Unsupported Media Type'}), 415
+class handler(BaseHTTPRequestHandler):
+    def do_POST(self):
+        content_length = int(self.headers['Content-Length'])
+        post_data = self.rfile.read(content_length)
+        data = json.loads(post_data)
+        
+        # Extract the range from the request
+        range_ = data.get('range', 'Sheet1!A1:D1')
+        values = data.get('values', [])
+        
+        # Ensure values are in the correct format
+        if not isinstance(values, list) or not all(isinstance(row, list) for row in values):
+            self.send_response(400)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'error': 'Invalid values format'}).encode())
+            return
 
+        sheet = service.spreadsheets()
+        body = {
+            'values': values
+        }
+        
         try:
-            data = request.json
-            sheet = service.spreadsheets()
-            range_ = "Sheet1!A1:A5"
-            values = [
-                [data['col1'], data['col2'], data['col3'], data['col4']]
-            ]
-            body = {
-                'values': values
-            }
             result = sheet.values().append(
                 spreadsheetId=SPREADSHEET_ID, range=range_,
                 valueInputOption="RAW", body=body).execute()
-
-            return jsonify({'status': 'success', 'result': result})
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'status': 'success', 'result': result}).encode())
+        
         except Exception as e:
-            return jsonify({'error': str(e)}), 500
+            self.send_response(500)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'error': str(e)}).encode())
 
-    elif request.method == 'GET':
+    def do_GET(self):
         try:
-            range_ = "Sheet1!A1:A5"  # Adjust the range as needed
-            result = service.spreadsheets().values().get(
-                spreadsheetId=SPREADSHEET_ID, range=range_).execute()
+            # Extract the range from query parameters
+            query = self.path.split('?')[1] if '?' in self.path else ''
+            params = dict(p.split('=') for p in query.split('&') if '=' in p)
+            range_ = params.get('range', 'Sheet1!A1:D10')
+            
+            sheet = service.spreadsheets()
+            result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=range_).execute()
             values = result.get('values', [])
-
-            return jsonify({'status': 'success', 'data': values})
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'status': 'success', 'values': values}).encode())
+        
         except Exception as e:
-            return jsonify({'error': str(e)}), 500
+            self.send_response(500)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'error': str(e)}).encode())
 
 if __name__ == '__main__':
     app.run(debug=True)
