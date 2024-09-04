@@ -1,34 +1,32 @@
+import json
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
-# Path to your service account credentials
-SERVICE_ACCOUNT_FILE = '/client_sec.json'
-
-# Google Sheets API scope
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-
-# ID of the Google Sheet
-SPREADSHEET_ID = '1435980372'
-
-# Authenticate and build the service
-credentials = service_account.Credentials.from_service_account_file(
-    SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-service = build('sheets', 'v4', credentials=credentials)
-
-# Function to get data
-def get_data(range_name):
-    sheet = service.spreadsheets()
-    result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=range_name).execute()
-    return result.get('values', [])
-
-# Function to update data
-def update_data(range_name, values):
-    sheet = service.spreadsheets()
-    body = {'values': values}
-    result = sheet.values().update(spreadsheetId=SPREADSHEET_ID, range=range_name,
-                                   valueInputOption='RAW', body=body).execute()
-    return result
-
-# Example usage
-data = get_data('Sheet1!A:D')
-print(data)
+def handler(event, context):
+    # Authenticate and build the service
+    SERVICE_ACCOUNT_FILE = '/client_sec.json'
+    SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+    credentials = service_account.Credentials.from_service_account_file(
+        SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+    service = build('sheets', 'v4', credentials=credentials)
+    
+    # Example function to read data
+    def get_data(range_name):
+        sheet = service.spreadsheets()
+        result = sheet.values().get(spreadsheetId='your-spreadsheet-id',
+                                    range=range_name).execute()
+        return result.get('values', [])
+    
+    # Get data and format response
+    data = get_data('Sheet1!A:D')
+    response = {
+        'statusCode': 200,
+        'body': json.dumps(data),
+        'headers': {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',  # Allow requests from any origin
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type'
+        }
+    }
+    return response
