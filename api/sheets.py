@@ -15,7 +15,7 @@ credentials = Credentials.from_service_account_info(
     json.loads(SERVICE_ACCOUNT_JSON), scopes=SCOPES)
 service = build('sheets', 'v4', credentials=credentials)
 
-SPREADSHEET_ID = '14B1_20Ix3CjgrUxijbYpIhpFQVa1ai3_'  # Replace with your Google Sheets ID
+SPREADSHEET_ID = '1pTBX4oVDvXaMm34910DiMMnR0auHVEEPA-QkJxTsrug'  # Replace with your Google Sheets ID
 
 @app.route('/api/sheets', methods=['POST', 'GET'])
 def handle_request():
@@ -26,7 +26,7 @@ def handle_request():
         try:
             data = request.json
             sheet = service.spreadsheets()
-            range_ = "Sheet1!A3:D3"
+            range_ = "Sheet1!A1:D1"
             values = [
                 [data['col1'], data['col2'], data['col3'], data['col4']]
             ]
