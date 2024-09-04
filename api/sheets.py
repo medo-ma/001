@@ -26,7 +26,7 @@ def handle_request():
         try:
             data = request.json
             sheet = service.spreadsheets()
-            range_ = "Sheet1!A1:D1"
+            range_ = "Sheet1!A3:D3"
             values = [
                 [data['col1'], data['col2'], data['col3'], data['col4']]
             ]
