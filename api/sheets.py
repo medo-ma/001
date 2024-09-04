@@ -55,46 +55,30 @@ class handler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json.dumps({'error': str(e)}).encode())
 
-import json
-from google.oauth2.service_account import Credentials
-from googleapiclient.discovery import build
-from http.server import BaseHTTPRequestHandler
-
-# Set up Google Sheets API
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-SERVICE_ACCOUNT_FILE = './hospital-434613-5eeb06d5c9f4.json'
-
-credentials = Credentials.from_service_account_file(
-    SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-service = build('sheets', 'v4', credentials=credentials)
-
-SPREADSHEET_ID = '14B1_20Ix3CjgrUxijbYpIhpFQVa1ai3_'
-
-
-def do_GET(self):
+    def do_GET(self):
     # Parse the query parameters
-    query = self.path.split('?')[1] if '?' in self.path else ''
-    params = dict(p.split('=') for p in query.split('&') if '=' in p)
+        query = self.path.split('?')[1] if '?' in self.path else ''
+        params = dict(p.split('=') for p in query.split('&') if '=' in p)
 
-    range_ = params.get('range', 'Sheet1!A1:D10')  # Default range if not provided
+        range_ = params.get('range', 'Sheet1!A1:D10')  # Default range if not provided
 
-    sheet = service.spreadsheets()
-    try:
-        result = sheet.values().get(
-            spreadsheetId=SPREADSHEET_ID, range=range_).execute()
-        
-        values = result.get('values', [])
+        sheet = service.spreadsheets()
+        try:
+            result = sheet.values().get(
+                spreadsheetId=SPREADSHEET_ID, range=range_).execute()
+            
+            values = result.get('values', [])
 
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.end_headers()
-        self.wfile.write(json.dumps({'status': 'success', 'values': values}).encode())
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'status': 'success', 'values': values}).encode())
 
-    except Exception as e:
-        self.send_response(500)
-        self.send_header('Content-type', 'application/json')
-        self.end_headers()
-        self.wfile.write(json.dumps({'error': str(e)}).encode())
+        except Exception as e:
+            self.send_response(500)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'error': str(e)}).encode())
 
 
 if __name__ == '__main__':
