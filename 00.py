@@ -1,8 +1,14 @@
+from flask import Flask, jsonify, request
+from flask_cors import CORS
 import json
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
-def handler(event, context):
+app = Flask(__name__)
+CORS(app)  # Allow all origins by default
+
+@app.route('/api', methods=['GET'])
+def get_data():
     # Authenticate and build the service
     SERVICE_ACCOUNT_FILE = '/client_sec.json'
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
@@ -11,22 +17,15 @@ def handler(event, context):
     service = build('sheets', 'v4', credentials=credentials)
     
     # Example function to read data
-    def get_data(range_name):
+    def fetch_data(range_name):
         sheet = service.spreadsheets()
         result = sheet.values().get(spreadsheetId='your-spreadsheet-id',
                                     range=range_name).execute()
         return result.get('values', [])
     
     # Get data and format response
-    data = get_data('Sheet1!A:D')
-    response = {
-        'statusCode': 200,
-        'body': json.dumps(data),
-        'headers': {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',  # Allow requests from any origin
-            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type'
-        }
-    }
-    return response
+    data = fetch_data('Sheet1!A:D')
+    return jsonify(data)
+
+if __name__ == '__main__':
+    app.run()
