@@ -23,6 +23,40 @@ class handler(BaseHTTPRequestHandler):
         content_length = int(self.headers['Content-Length'])
         post_data = self.rfile.read(content_length)
         data = json.loads(post_data)
+
+        range_ = data.get('range', 'Sheet1!A1')
+        values = data.get('values', [])
+
+        if not isinstance(values, list) or not all(isinstance(row, list) for row in values):
+            self.send_response(400)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'error': 'Invalid values format'}).encode())
+            return
+
+        sheet = service.spreadsheets()
+        body = {
+            'values': values
+        }
+
+        try:
+            result = sheet.values().update(
+                spreadsheetId=SPREADSHEET_ID, range=range_,
+                valueInputOption="RAW", body=body).execute()
+
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'status': 'success', 'result': result}).encode())
+
+        except Exception as e:
+            self.send_response(500)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'error': str(e)}).encode())
+        content_length = int(self.headers['Content-Length'])
+        post_data = self.rfile.read(content_length)
+        data = json.loads(post_data)
         
         # Extract the range from the request
         range_ = data.get('range', 'Sheet1!A1:D1')
