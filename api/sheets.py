@@ -2,18 +2,16 @@ import os
 import json
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
+import base64
 
 # Set up Google Sheets API
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-SERVICE_ACCOUNT_FILE = os.environ.get('/hospital-434613-5eeb06d5c9f4.json')
+SERVICE_ACCOUNT_BASE64 = os.environ.get('GOOGLE_SERVICE_ACCOUNT')
+SERVICE_ACCOUNT_JSON = base64.b64decode(SERVICE_ACCOUNT_BASE64).decode('utf-8')
 
-try:
-    credentials = Credentials.from_service_account_file(
-        SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-    service = build('sheets', 'v4', credentials=credentials)
-except Exception as e:
-    print(f"Failed to create Google Sheets service: {e}")
-    raise
+credentials = Credentials.from_service_account_info(
+    json.loads(SERVICE_ACCOUNT_JSON), scopes=SCOPES)
+service = build('sheets', 'v4', credentials=credentials)
 
 SPREADSHEET_ID = '14B1_20Ix3CjgrUxijbYpIhpFQVa1ai3'  # Replace with your Google Sheets ID
 
