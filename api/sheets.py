@@ -92,42 +92,32 @@ class handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps({'error': str(e)}).encode())
 
     def do_GET_Search(self):
-        try:
-            # Parse query parameters
-            query = self.path.split('?')[1] if '?' in self.path else ''
-            params = dict(p.split('=') for p in query.split('&') if '=' in p)
-            range_ = unquote(params.get('range', 'Sheet1!A1:D100')).strip()
-            column = params.get('column', 'A')  # Default to column 'A'
-            value = params.get('value', '')  # Value to search for
-            
-            # Validate the range
-            if not range_.startswith('Sheet1!'):
-                self.send_response(400)
-                self.send_header('Content-type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({'error': 'Invalid range format'}).encode())
-                return
-            
-            # Fetch data
-            sheet = service.spreadsheets()
-            result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=range_).execute()
-            values = result.get('values', [])
-            
-            # Apply filter
-            column_index = ord(column.upper()) - ord('A')
-            filtered_rows = [row for row in values if len(row) > column_index and row[column_index] == value]
-            
-            # Send response
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({'status': 'success', 'rows': filtered_rows}).encode())
-        
-        except Exception as e:
-            self.send_response(500)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({'error': str(e)}).encode())
+        # Extract parameters from the query string
+        query = self.path.split('?')[-1]
+        params = {key: value for key, value in [param.split('=') for param in query.split('&')]}
+
+        range_ = params.get('range', 'Sheet1!A1:A100')
+        search_value = params.get('value', '')
+
+        # Fetch the data from the specified range
+        sheet = service.spreadsheets()
+        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=range_).execute()
+        values = result.get('values', [])
+
+        # Search for the value
+        found_rows = []
+        for row in values:
+            if search_value in row:
+                found_rows.append(row)
+
+        # Return the result
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps({
+            'status': 'success',
+            'found_rows': found_rows
+        }).encode())
 
 if __name__ == '__main__':
     app.run(debug=True)
