@@ -57,68 +57,59 @@ class handler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json.dumps({'error': str(e)}).encode())
 
+
     def do_GET(self):
         try:
             # Parse the query parameters
             query = self.path.split('?')[1] if '?' in self.path else ''
             params = dict(p.split('=') for p in query.split('&') if '=' in p)
             
-            # Check if it's a range request or a search request
-            search_value = unquote(params.get('search', None))
-            search_columns = unquote(params.get('columns', None))  # New parameter for specifying columns
+            # Define the sheet name
+            SHEET_NAME = 'Sheet1'  # Change this to your actual sheet name if different
             
-            if search_value:
-                if search_columns:
-                    # Create query condition to search in specified columns
-                    columns = search_columns.split(',')
-                    query_conditions = [f"{col} CONTAINS '{search_value}'" for col in columns]
-                    query = f"SELECT * WHERE {' OR '.join(query_conditions)}"
-                else:
-                    # Default to searching in column A if no columns are specified
-                    query = f"SELECT * WHERE A CONTAINS '{search_value}'"
-                
-                # Construct the Google Visualization API URL
-                url = f"https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/gviz/tq?tq={query}&sheet={SHEET_NAME}"
-                
-                # Make the HTTP request to Google Visualization API
-                import requests
-                response = requests.get(url)
-                
-                if response.status_code == 200:
-                    # Extract JSON data from the response
-                    json_data = response.text[response.text.find("(") + 1:-2]  # Extract the JSON part
-                    
-                    self.send_response(200)
-                    self.send_header('Content-type', 'application/json')
-                    self.end_headers()
-                    self.wfile.write(json_data.encode())
-                else:
-                    self.send_response(response.status_code)
-                    self.send_header('Content-type', 'application/json')
-                    self.end_headers()
-                    self.wfile.write(json.dumps({'error': 'Failed to query data'}).encode())
-            else:
-                # Regular range request
-                range_ = unquote(params.get('range', 'Sheet1!A1:D10'))
-                
-                # Validate the range format
-                if not range_.startswith('Sheet1!'):
-                    self.send_response(400)
-                    self.send_header('Content-type', 'application/json')
-                    self.end_headers()
-                    self.wfile.write(json.dumps({'error': 'Invalid range format'}).encode())
-                    return
-                
-                sheet = service.spreadsheets()
-                result = sheet.values().get(
-                    spreadsheetId=SPREADSHEET_ID, range=range_).execute()
-                
-                values = result.get('values', [])
-                
-                self.send_response(200)
+            # Decode the URL-encoded range or use the default range
+            range_ = unquote(params.get('range', f'{SHEET_NAME}!A1:D10'))
+            
+            # Validate the range format
+            if not range_.startswith(f'{SHEET_NAME}!'):
+                self.send_response(400)
                 self.send_header('Content-type', 'application/json')
                 self.end_headers()
-                self.wfile.write(json.dumps({'status': 'success', 'values': values}).encode())
+                self.wfile.write(json.dumps({'error': 'Invalid range format'}).encode())
+                return
+            
+            # Get the search query and columns
+            search_query = unquote(params.get('search', '')).strip()
+            columns = params.get('columns', 'A').split(',')
+            
+            if not search_query:
+                self.send_response(400)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': 'No search query provided'}).encode())
+                return
+            
+            # Fetch the entire sheet data
+            sheet = service.spreadsheets()
+            result = sheet.values().get(
+                spreadsheetId=SPREADSHEET_ID, range=range_).execute()
+            values = result.get('values', [])
+            
+            # Search for the query in the specified columns
+            matching_rows = []
+            column_indices = [ord(col.upper()) - ord('A') for col in columns]
+            
+            for row in values:
+                for index in column_indices:
+                    if len(row) > index and search_query in row[index]:
+                        matching_rows.append(row)
+                        break
+            
+            # Send the response with matching rows
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'status': 'success', 'matches': matching_rows}).encode())
 
         except Exception as e:
             self.send_response(500)
