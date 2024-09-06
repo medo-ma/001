@@ -121,7 +121,7 @@ class handler(BaseHTTPRequestHandler):
     def handle_search(self, params):
         search_query = unquote(params.get('search', '')).strip()
         columns = params.get('columns', 'A').split(',')
-
+        sheet = params.get('sheet', 'Sheet1').split(',')
         if not search_query:
             self.send_response(400)
             self.send_header('Content-type', 'application/json')
@@ -131,7 +131,7 @@ class handler(BaseHTTPRequestHandler):
 
         # Fetch data from the Google Sheets API
         sheet = service.spreadsheets()
-        range_ = 'Sheet1!A1:BZ1000'  # Adjust range as needed
+        range_ = f'{sheet}!A1:BZ1000'  # Adjust range as needed
         result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=range_).execute()
         values = result.get('values', [])
 
