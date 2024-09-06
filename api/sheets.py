@@ -70,6 +70,8 @@ class handler(BaseHTTPRequestHandler):
                 self.handle_count_in_row(params)
             elif 'search' in params:
                 self.handle_search(params)
+            elif 'mo' in params:
+                self.handle_mo(params)
             else:
                 self.send_response(400)
                 self.send_header('Content-type', 'application/json')
@@ -146,6 +148,13 @@ class handler(BaseHTTPRequestHandler):
         self.send_header('Content-type', 'application/json')
         self.end_headers()
         self.wfile.write(json.dumps({'status': 'success', 'matches': matching_rows}).encode())
+        
+    def handle_mo(self, params):
+        if params.get("mo"):
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'status': 'success', 'mo ':'is mo'}).encode())
 
 
 
