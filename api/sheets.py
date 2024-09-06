@@ -150,8 +150,8 @@ class handler(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps({'status': 'success', 'matches': matching_rows}).encode())
         
     def handle_mo(self, params):
-        search_query = unquote(params.get('mo', '')).strip()
-        if search_query:
+        search_query = unquote(params.get('mo')).strip()
+        if search_query == "ma":
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
