@@ -71,7 +71,7 @@ class handler(BaseHTTPRequestHandler):
             elif 'search' in params:
                 self.handle_search(params)
             elif 'mo' in params:
-                self.handle_mo(params)
+                self.handle_CustomElement(params)
             else:
                 self.send_response(400)
                 self.send_header('Content-type', 'application/json')
