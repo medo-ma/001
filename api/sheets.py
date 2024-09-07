@@ -151,8 +151,10 @@ class handler(BaseHTTPRequestHandler):
         
     def handle_mo(self, params):
         search_query = unquote(params.get('mo')).strip()
+        sh = unquote(params.get('sh')).strip()
         sheet = service.spreadsheets()
-        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=search_query).execute()
+        range = f'{sh}!{search_query}'
+        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=range).execute()
         values = result.get('values', [])
     
         self.send_response(200)
