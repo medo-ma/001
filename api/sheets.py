@@ -154,11 +154,11 @@ class handler(BaseHTTPRequestHandler):
         sheet = service.spreadsheets()
         result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=search_query).execute()
         values = result.get('values', [])
-        if search_query == "ma":
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({'status': 'success', 'mo ':f'{values}'}).encode())
+    
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps({'status': 'success', 'mo ':f'{values}'}).encode())
 
 
 
