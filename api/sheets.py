@@ -96,7 +96,7 @@ class handler(BaseHTTPRequestHandler):
             return
 
         if count_in_row:
-            # Fetch data from the Google Sheets API
+# Fetch data from the Google Sheets API
             sheet = service.spreadsheets()
             range_ = 'Sheet1!A1:BZ1000'  # Adjust range as needed
             result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=range_).execute()
@@ -129,7 +129,7 @@ class handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps({'error': 'No search query provided'}).encode())
             return
 
-        # Fetch data from the Google Sheets API
+# Fetch data from the Google Sheets API
         sheet = service.spreadsheets()
         range_ = f'{sheet_}!A1:BZ1000'  # Adjust range as needed
         result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=range_).execute()
@@ -143,20 +143,20 @@ class handler(BaseHTTPRequestHandler):
                 if len(row) > index and search_query in row[index]:
                     matching_rows.append({'row_number': row_index, 'row_data': row})
                     break
-
+#send the response
         self.send_response(200)
         self.send_header('Content-type', 'application/json')
         self.end_headers()
         self.wfile.write(json.dumps({'status': 'success', 'matches': matching_rows}).encode())
-        
-    def handle_mo(self, params):
+#this query can be customized with range and the sheet name, it will return the value of the range
+    def handle_CustomElement(self, params):
         search_query = unquote(params.get('mo')).strip()
         sh = unquote(params.get('sh')).strip()
         sheet = service.spreadsheets()
         range = f'{sh}!{search_query}'
         result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=range).execute()
         values = result.get('values', [])
-    
+#send the response
         self.send_response(200)
         self.send_header('Content-type', 'application/json')
         self.end_headers()
