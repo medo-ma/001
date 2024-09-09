@@ -156,12 +156,12 @@ class handler(BaseHTTPRequestHandler):
         sheet = service.spreadsheets()
         range = f'{sh}!{search_query}'
         result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=range).execute()
-        #values = result.get('values', [])
+        values = result.get('values', [])
 #send the response
         self.send_response(200)
         self.send_header('Content-type', 'application/json')
         self.end_headers()
-        self.wfile.write(json.dumps({'status': 'success', 'mo ':f'{result}'}).encode())
+        self.wfile.write(json.dumps({'status': 'success', 'mo ':f'{values}'}).encode())
 
 
 
