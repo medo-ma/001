@@ -148,6 +148,7 @@ class handler(BaseHTTPRequestHandler):
         self.send_header('Content-type', 'application/json')
         self.end_headers()
         self.wfile.write(json.dumps({'status': 'success', 'matches': matching_rows}).encode())
+
 #this query can be customized with range and the sheet name, it will return the value of the range
     def handle_CustomElement(self, params):
         search_query = unquote(params.get('mo')).strip()
@@ -155,12 +156,12 @@ class handler(BaseHTTPRequestHandler):
         sheet = service.spreadsheets()
         range = f'{sh}!{search_query}'
         result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=range).execute()
-        values = result.get('values', [])
+        #values = result.get('values', [])
 #send the response
         self.send_response(200)
         self.send_header('Content-type', 'application/json')
         self.end_headers()
-        self.wfile.write(json.dumps({'status': 'success', 'mo ':f'{values}'}).encode())
+        self.wfile.write(json.dumps({'status': 'success', 'mo ':f'{result}'}).encode())
 
 
 
