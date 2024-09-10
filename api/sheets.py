@@ -5,7 +5,9 @@ from googleapiclient.discovery import build
 import json
 import base64
 import os
+import logging
 
+logging.basicConfig(level=logging.INFO)
 app = Flask(__name__)
 CORS(app)  # This will enable CORS for all routes and origins
 
@@ -45,6 +47,7 @@ def update_sheet():
 
 @app.route('/api/sheets/add', methods=['POST'])
 def add_data_to_sheet():
+    logging.info("POST /api/sheets/add")
     data = request.get_json()
 
     # Extract values for columns A and B from the request
