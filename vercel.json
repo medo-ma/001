@@ -4,7 +4,7 @@
     { "src": "app.py", "use": "@vercel/python" }
   ],
   "routes": [
-    { "src": "/api/sheets", "dest": "/app.py" },
-    { "src": "/api/sheets/add", "dest": "/app.py" }
+    { "src": "/api/sheets", "dest": "./api/app.py" },
+    { "src": "/api/sheets/add", "dest": "./api/app.py" }
   ]
 }
