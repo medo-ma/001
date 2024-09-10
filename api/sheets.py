@@ -42,6 +42,45 @@ def update_sheet():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/sheets/add', methods=['POST'])
+def add_data_to_sheet():
+    data = request.get_json()
+
+    # Extract values for columns A and B from the request
+    column_a_value = data.get('column_a', '')
+    column_b_value = data.get('column_b', '')
+
+    if not column_a_value or not column_b_value:
+        return jsonify({'error': 'Both column_a and column_b values are required'}), 400
+
+    # Define the range to insert into (e.g., next available row in columns A and B)
+    # You can modify the range to match where you want to insert the data
+    range_ = 'Sheet1!A:B'
+
+    # Prepare the values to be added
+    values = [[column_a_value, column_b_value]]
+
+    body = {
+        'values': values
+    }
+
+    # Use Google Sheets API to append the new row
+    try:
+        result = service.spreadsheets().values().append(
+            spreadsheetId=SPREADSHEET_ID,
+            range=range_,
+            valueInputOption='RAW',
+            insertDataOption='INSERT_ROWS',  # Inserts new rows
+            body=body
+        ).execute()
+
+        return jsonify({'status': 'success', 'result': result})
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+
 
 @app.route('/api/sheets', methods=['GET'])
 def handle_get():
