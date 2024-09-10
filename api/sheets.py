@@ -17,7 +17,7 @@ credentials = Credentials.from_service_account_info(
     json.loads(SERVICE_ACCOUNT_JSON), scopes=SCOPES)
 service = build('sheets', 'v4', credentials=credentials)
 
-SPREADSHEET_ID = '1pTBX4oVDvXaMm34910DiMMnR0auHVEEPA-QkJxTsrug'  # Replace with your Google Sheets ID
+SPREADSHEET_ID = '1HRZcZgtjgH3IdA0kaTnlgyXk0KdMENMOEAuuA_vtKro'  # Replace with your Google Sheets ID
 
 @app.route('/api/sheets', methods=['POST'])
 def update_sheet():
