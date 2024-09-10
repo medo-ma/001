@@ -97,7 +97,7 @@ def handle_search(params):
     for row_index, row in enumerate(values, start=1):
         for index in column_indices:
             if len(row) > index and search_query in row[index]:
-                matching_rows.append({'row_number': row_index, 'row_data': row})
+                matching_rows.append({'index': row_index, 'student': row})
                 break
 
     return jsonify({'status': 'success', 'matches': matching_rows})
