@@ -5,9 +5,6 @@ from googleapiclient.discovery import build
 import json
 import base64
 import os
-import logging
-
-logging.basicConfig(level=logging.INFO)
 app = Flask(__name__)
 CORS(app)  # This will enable CORS for all routes and origins
 
@@ -44,10 +41,6 @@ def update_sheet():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
-
-
-
 
 
 @app.route('/api/sheets', methods=['GET'])
