@@ -2,3 +2,4 @@ Flask==2.0.3
 google-auth==2.18.0
 google-api-python-client==2.70.0
 flask_cors==3.0.10
+werkzeug==1.0.1
