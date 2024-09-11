@@ -50,7 +50,7 @@ def add_data_to_sheet():
     column_a_value = data.get('column_a', '')
     column_b_value = data.get('column_b', '')
     column_c_value = data.get('column_c', '')
-    if not column_a_value or not column_b_value or not column_c_value = data.get('column_c', ''):
+    if not column_a_value or not column_b_value or not column_c_value :
         return jsonify({'error': 'Both column_a and column_b and column_c values are required'}), 400
 
     # Define the range to insert into (e.g., next available row in columns A and B)
