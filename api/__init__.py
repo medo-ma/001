@@ -49,16 +49,16 @@ def add_data_to_sheet():
     # Extract values for columns A and B from the request
     column_a_value = data.get('column_a', '')
     column_b_value = data.get('column_b', '')
-
-    if not column_a_value or not column_b_value:
-        return jsonify({'error': 'Both column_a and column_b values are required'}), 400
+    column_c_value = data.get('column_c', '')
+    if not column_a_value or not column_b_value or not column_c_value = data.get('column_c', ''):
+        return jsonify({'error': 'Both column_a and column_b and column_c values are required'}), 400
 
     # Define the range to insert into (e.g., next available row in columns A and B)
     # You can modify the range to match where you want to insert the data
-    range_ = 'Sheet1!A:B'
+    range_ = 'Sheet1!A:C'
 
     # Prepare the values to be added
-    values = [[column_a_value, column_b_value]]
+    values = [[column_a_value, column_b_value,column_c_value]]
 
     body = {
         'values': values
