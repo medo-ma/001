@@ -47,6 +47,7 @@ def add_data_to_sheet():
     data = request.get_json()
 
     # Extract values for columns A and B from the request
+    rango = data.get('range','')
     column_a_value = data.get('column_a', '')
     column_b_value = data.get('column_b', '')
     column_c_value = data.get('column_c', '')
@@ -55,7 +56,7 @@ def add_data_to_sheet():
 
     # Define the range to insert into (e.g., next available row in columns A and B)
     # You can modify the range to match where you want to insert the data
-    range_ = 'Sheet1!A:C'
+    range_ = f'Sheet1!{rango}'
 
     # Prepare the values to be added
     values = [[column_a_value, column_b_value,column_c_value]]
