@@ -138,8 +138,10 @@ def handle_search(params):
             if len(row) > index and search_query in row[index]:
                 matching_rows.append({'index': row_index, 'student': row})
                 break
-
-    return jsonify({'status': 'success', 'matches': matching_rows})
+    if matching_rows != []:
+        return jsonify({'status': 'success', 'matches': matching_rows})
+    else:
+        return jsonify({'status': 'false', 'matches': '0'})
 
 def handle_CustomElement(params):
     search_query = params.get('mo').strip()
