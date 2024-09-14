@@ -52,15 +52,17 @@ def add_data_to_sheet():
     column_a_value = data.get('column_a', '')
     column_b_value = data.get('column_b', '')
     column_c_value = data.get('column_c', '')
-    if not column_a_value or not column_b_value or not column_c_value or not sheeto :
-        return jsonify({'error': 'Both column_a and column_b and column_c values are required'}), 400
+    column_d_value = data.get('column_d', '')
+    column_e_value = data.get('column_e', '')
+    if not rango or not sheeto :
+        return jsonify({'error': 'sheet and range are required'}), 400
 
     # Define the range to insert into (e.g., next available row in columns A and B)
     # You can modify the range to match where you want to insert the data
     range_ = f'{sheeto}!{rango}'
 
     # Prepare the values to be added
-    values = [[column_a_value, column_b_value,column_c_value]]
+    values = [[column_a_value, column_b_value,column_c_value,column_d_value,column_e_value]]
 
     body = {
         'values': values
