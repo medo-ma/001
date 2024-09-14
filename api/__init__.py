@@ -169,7 +169,7 @@ def get_vacation_status():
         # Assuming you have a function to get the rows from Google Sheets
         result = service.spreadsheets().values().get(
             spreadsheetId=SPREADSHEET_ID,
-            range="Requests!A:D"  # Adjust range to include status column
+            range="Requests-E!A:D"  # Adjust range to include status column
         ).execute()
 
         rows = result.get('values', [])
