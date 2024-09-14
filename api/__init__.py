@@ -84,44 +84,37 @@ def add_data_to_sheet():
 
 #admin
 @app.route('/api/sheets/update-status', methods=['POST'])
-def update_vacation_status():
+def update_status():
     data = request.get_json()
-    scode = data.get('scode')
+    
+    # Extract row index and status from the request
+    row_index = data.get('row_index')
     status = data.get('status')
+    
+    if not row_index or not status:
+        return jsonify({'error': 'Row index and status are required'}), 400
 
-    if not scode or not status:
-        return jsonify({'error': 'Student code and status are required'}), 400
-
-    # Find the correct row based on the student code
-    range_ = 'Requests-C!A:D'  # Adjust the range as needed
     try:
-        result = service.spreadsheets().values().get(
+        # Define the range to update (assuming the status is in column D, for example)
+        range_ = f'Requests-C!D{row_index}'
+
+        # Prepare the values to update the status
+        values = [[status]]
+        body = {'values': values}
+
+        # Use Google Sheets API to update the status in the correct row
+        result = service.spreadsheets().values().update(
             spreadsheetId=SPREADSHEET_ID,
-            range=range_
+            range=range_,
+            valueInputOption='RAW',
+            body=body
         ).execute()
-        rows = result.get('values', [])
 
-        # Find the row that matches the student code
-        for idx, row in enumerate(rows):
-            if row[0] == scode:
-                # Update the status in the correct row
-                body = {
-                    'values': [[status]]
-                }
-                update_range = f'Requests-C!D{idx + 1}'  # D is the column for status
-                service.spreadsheets().values().update(
-                    spreadsheetId=SPREADSHEET_ID,
-                    range=update_range,
-                    valueInputOption='RAW',
-                    body=body
-                ).execute()
-
-                return jsonify({'status': 'success'})
-
-        return jsonify({'error': 'Student code not found'}), 404
+        return jsonify({'status': 'success', 'result': result})
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 
 
