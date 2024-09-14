@@ -53,7 +53,6 @@ def add_data_to_sheet():
     column_b_value = data.get('column_b', '')
     column_c_value = data.get('column_c', '')
     column_d_value = data.get('column_d', '')
-    column_e_value = data.get('column_e', '')
     if not rango or not sheeto :
         return jsonify({'error': 'sheet and range are required'}), 400
 
@@ -62,7 +61,7 @@ def add_data_to_sheet():
     range_ = f'{sheeto}!{rango}'
 
     # Prepare the values to be added
-    values = [[column_a_value, column_b_value,column_c_value,column_d_value,column_e_value]]
+    values = [[column_a_value, column_b_value,column_c_value,column_d_value]]
     
     # Prepare the values to be added requests
     values[0] = [v for v in values[0] if v != "{0:0}" and v]
