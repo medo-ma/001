@@ -159,18 +159,13 @@ def handle_CustomElement(params):
 
     return jsonify({'status': 'success', 'mo': values})
 
-@app.route('/api/sheets/student-requests', methods=['GET'])
-def get_student_requests():
-    scode = request.args.get('scode')
-
-    if not scode:
-        return jsonify({'error': 'Student code is required'}), 400
-
+@app.route('/api/sheets/requests', methods=['GET'])
+def get_vacation_requests():
     # Define the range to fetch (e.g., columns A to D)
-    range_ = 'Requests-E!A:D'
+    range_ = 'Requests!A:D'
 
+    # Use Google Sheets API to get the data
     try:
-        # Use Google Sheets API to get the data
         result = service.spreadsheets().values().get(
             spreadsheetId=SPREADSHEET_ID,
             range=range_
@@ -180,24 +175,21 @@ def get_student_requests():
         if not rows:
             return jsonify({'message': 'No data found'}), 404
 
-        # Filter requests by student code (scode)
-        student_requests = [
-            {
+        # Convert rows to a more structured response
+        requests = []
+        for row in rows:
+            requests.append({
                 'scode': row[0],
                 'sname': row[1],
                 'dates': row[2],
                 'status': row[3]
-            }
-            for row in rows if row[0] == scode
-        ]
+            })
 
-        if not student_requests:
-            return jsonify({'message': 'No vacation requests found for this student'}), 404
-
-        return jsonify({'requests': student_requests})
+        return jsonify({'requests': requests})
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 
 #
