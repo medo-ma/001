@@ -167,7 +167,7 @@ def get_student_requests():
         return jsonify({'error': 'Student code is required'}), 400
 
     # Define the range to fetch (e.g., columns A to D)
-    range_ = 'Requests!A:D'
+    range_ = 'Requests-E!A:D'
 
     try:
         # Use Google Sheets API to get the data
