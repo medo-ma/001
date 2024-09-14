@@ -63,7 +63,9 @@ def add_data_to_sheet():
 
     # Prepare the values to be added
     values = [[column_a_value, column_b_value,column_c_value,column_d_value,column_e_value]]
-
+    
+    values[0] = [v for v in values[0] if v != "{0:0}" and v]
+    
     body = {
         'values': values
     }
