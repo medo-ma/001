@@ -47,27 +47,26 @@ def add_data_to_sheet():
     data = request.get_json()
 
     # Extract values for columns A and B from the request
-    sheeto = data.get('Sheet','')
-    rango = data.get('range','')
+    sheeto = data.get('Sheet', '')
+    rango = data.get('range', '')
     column_a_value = data.get('column_a', '')
     column_b_value = data.get('column_b', '')
     column_c_value = data.get('column_c', '')
     column_d_value = data.get('column_d', '')
-    if not rango or not sheeto :
+    if not rango or not sheeto:
         return jsonify({'error': 'sheet and range are required'}), 400
 
     # Define the range to insert into (e.g., next available row in columns A and B)
-    # You can modify the range to match where you want to insert the data
     range_ = f'{sheeto}!{rango}'
 
     # Prepare the values to be added
-    values = [[column_a_value, column_b_value,column_c_value,column_d_value]]
+    values = [[column_a_value, column_b_value, column_c_value, column_d_value]]
     
-    # Prepare the values to be added requests
-    values[0] = [date for date in values if not (date["month"] == 0 and date["day"] == 0)]
-    
+    # Filter out values where both month and day are 0
+    filtered_values = [value for value in values if not (value[0] == '0' and value[1] == '0')]
+
     body = {
-        'values': values
+        'values': filtered_values
     }
 
     # Use Google Sheets API to append the new row
