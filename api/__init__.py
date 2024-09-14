@@ -282,26 +282,34 @@ def get_requests():
         # Fetch data from Google Sheets
         sheet = service.spreadsheets().values().get(
             spreadsheetId=SPREADSHEET_ID,
-            range='Requests-C!A:D'
+            range='Requests-C!A:D'  # Ensure this range has the data you need
         ).execute()
 
         rows = sheet.get('values', [])
 
         requests = []
+        # Debugging: print rows to check the data structure
+        print("Rows fetched from Google Sheets:", rows)
+
+        # Iterate over the rows and check if there's enough data in each row
         for index, row in enumerate(rows, start=1):  # Enumerate to get row index starting at 1
-            if len(row) >= 5:  # Ensure there's enough data in the row
+            if len(row) >= 5:  # Make sure there are at least 5 columns (A, B, C, D, E)
                 requests.append({
                     'rowIndex': index,       # Capture row number for updates
                     'scode': row[0],
                     'sname': row[1],
-                    'dates': row[2],
+                    'dates': row[2],         # Dates stored in JSON format
                     'status': row[3]         # Assuming status is in column D
                 })
+
+        # Debugging: print out the processed requests
+        print("Processed requests:", requests)
 
         return jsonify({'requests': requests})
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 
 
