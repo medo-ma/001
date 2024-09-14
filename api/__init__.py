@@ -282,7 +282,7 @@ def get_requests():
         # Fetch data from Google Sheets
         sheet = service.spreadsheets().values().get(
             spreadsheetId=SPREADSHEET_ID,
-            range='Requests-C!A:E'
+            range='Requests-C!A:D'
         ).execute()
 
         rows = sheet.get('values', [])
