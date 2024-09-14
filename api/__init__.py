@@ -180,16 +180,19 @@ def get_student_requests():
         if not rows:
             return jsonify({'message': 'No data found'}), 404
 
-        # Filter requests by student code (scode)
-        student_requests = [
-            {
-                'scode': row[0],
-                'sname': row[1],
-                'dates': row[2],
-                'status': row[3]
-            }
-            for row in rows if row[0] == scode
-        ]
+        # Initialize an empty list to store filtered requests
+        student_requests = []
+
+        # Loop through each row, checking if it has the required number of columns
+        for row in rows:
+            # Only process rows with enough columns
+            if len(row) >= 4 and row[0] == scode:  # Check if row has at least 4 columns
+                student_requests.append({
+                    'scode': row[0],     # Student code
+                    'sname': row[1],     # Student name
+                    'dates': row[2],     # Vacation dates (can be stored as JSON or a combined string)
+                    'status': row[3]     # Status (Pending, Approved, Rejected)
+                })
 
         if not student_requests:
             return jsonify({'message': 'No vacation requests found for this student'}), 404
@@ -198,6 +201,7 @@ def get_student_requests():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 
 
