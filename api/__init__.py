@@ -159,10 +159,51 @@ def handle_CustomElement(params):
 
     return jsonify({'status': 'success', 'mo': values})
 
-@app.route('/api/sheets/student-requests', methods=['GET'])
-def get_student_requests():
+@app.route('/api/sheets/student-requests_c', methods=['GET'])
+def get_student_requests_c():
     scode = request.args.get('scode')
+    if not scode:
+        return jsonify({'error': 'Student code is required'}), 400
 
+    # Define the range to fetch (e.g., columns A to D)
+    range_ = 'Requests-C!A:D'
+
+    try:
+        # Use Google Sheets API to get the data
+        result = service.spreadsheets().values().get(
+            spreadsheetId=SPREADSHEET_ID,
+            range=range_
+        ).execute()
+
+        rows = result.get('values', [])
+        if not rows:
+            return jsonify({'message': 'No data found'}), 404
+
+        # Initialize an empty list to store filtered requests
+        student_requests = []
+
+        # Loop through each row, checking if it has the required number of columns
+        for row in rows:
+            # Only process rows with enough columns
+            if len(row) >= 4 and row[0] == scode:  # Check if row has at least 4 columns
+                student_requests.append({
+                    'scode': row[0],     # Student code
+                    'sname': row[1],     # Student name
+                    'dates': row[2],     # Vacation dates (can be stored as JSON or a combined string)
+                    'status': row[3]     # Status (Pending, Approved, Rejected)
+                })
+
+        if not student_requests:
+            return jsonify({'message': 'No vacation requests found for this student'}), 404
+
+        return jsonify({'requests': student_requests})
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/sheets/student-requests_e', methods=['GET'])
+def get_student_requests_e():
+    scode = request.args.get('scode')
     if not scode:
         return jsonify({'error': 'Student code is required'}), 400
 
@@ -201,7 +242,6 @@ def get_student_requests():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
 
 
 
