@@ -159,6 +159,36 @@ def handle_CustomElement(params):
     values = result.get('values', [])
 
     return jsonify({'status': 'success', 'mo': values})
+
+@app.route('/api/sheets/status', methods=['GET'])
+def get_vacation_status():
+    student_id = request.args.get('student_id')
+
+    # Fetch data from Google Sheets (filter by student ID)
+    try:
+        # Assuming you have a function to get the rows from Google Sheets
+        result = service.spreadsheets().values().get(
+            spreadsheetId=SPREADSHEET_ID,
+            range="Requests!A:D"  # Adjust range to include status column
+        ).execute()
+
+        rows = result.get('values', [])
+        
+        # Find the student’s row
+        for row in rows:
+            if row[0] == student_id:  # Assuming student_id is in column A
+                return jsonify({
+                    'student_id': row[0],
+                    'student_name': row[1],
+                    'vacation_date': row[2],
+                    'status': row[3]  # Status column
+                })
+        
+        return jsonify({'error': 'Request not found'}), 404
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 #
 if __name__ == '__main__':
     app.run(debug=True)
