@@ -160,34 +160,46 @@ def handle_CustomElement(params):
 
     return jsonify({'status': 'success', 'mo': values})
 
-@app.route('/api/sheets/status', methods=['GET'])
-def get_vacation_status():
-    student_id = request.args.get('student_id')
+@app.route('/api/sheets/student-requests', methods=['GET'])
+def get_student_requests():
+    scode = request.args.get('scode')
 
-    # Fetch data from Google Sheets (filter by student ID)
+    if not scode:
+        return jsonify({'error': 'Student code is required'}), 400
+
+    # Define the range to fetch (e.g., columns A to D)
+    range_ = 'Requests-E!A:D'
+
     try:
-        # Assuming you have a function to get the rows from Google Sheets
+        # Use Google Sheets API to get the data
         result = service.spreadsheets().values().get(
             spreadsheetId=SPREADSHEET_ID,
-            range="Requests-E!A:D"  # Adjust range to include status column
+            range=range_
         ).execute()
 
         rows = result.get('values', [])
-        
-        # Find the student’s row
-        for row in rows:
-            if row[0] == student_id:  # Assuming student_id is in column A
-                return jsonify({
-                    'student_id': row[0],
-                    'student_name': row[1],
-                    'vacation_date': row[2],
-                    'status': row[3]  # Status column
-                })
-        
-        return jsonify({'error': 'Request not found'}), 404
+        if not rows:
+            return jsonify({'message': 'No data found'}), 404
+
+        # Filter requests by student code (scode)
+        student_requests = [
+            {
+                'scode': row[0],
+                'sname': row[1],
+                'dates': row[2],
+                'status': row[3]
+            }
+            for row in rows if row[0] == scode
+        ]
+
+        if not student_requests:
+            return jsonify({'message': 'No vacation requests found for this student'}), 404
+
+        return jsonify({'requests': student_requests})
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 #
 if __name__ == '__main__':
