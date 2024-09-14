@@ -93,7 +93,7 @@ def update_vacation_status():
         return jsonify({'error': 'Student code and status are required'}), 400
 
     # Find the correct row based on the student code
-    range_ = 'Requests!A:D'  # Adjust the range as needed
+    range_ = 'Requests-C!A:D'  # Adjust the range as needed
     try:
         result = service.spreadsheets().values().get(
             spreadsheetId=SPREADSHEET_ID,
@@ -108,7 +108,7 @@ def update_vacation_status():
                 body = {
                     'values': [[status]]
                 }
-                update_range = f'Requests!D{idx + 1}'  # D is the column for status
+                update_range = f'Requests-C!D{idx + 1}'  # D is the column for status
                 service.spreadsheets().values().update(
                     spreadsheetId=SPREADSHEET_ID,
                     range=update_range,
@@ -286,7 +286,7 @@ def get_student_requests_e():
 @app.route('/api/sheets/requests', methods=['GET'])
 def get_vacation_requests():
     # Define the range to fetch (e.g., columns A to D)
-    range_ = 'Requests!A:D'
+    range_ = 'Requests-C!A:D'
 
     # Use Google Sheets API to get the data
     try:
