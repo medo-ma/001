@@ -277,35 +277,32 @@ def get_student_requests_e():
 
 #admin
 @app.route('/api/sheets/requests', methods=['GET'])
-def get_vacation_requests():
-    # Define the range to fetch (e.g., columns A to D)
-    range_ = 'Requests-C!A:D'
-
-    # Use Google Sheets API to get the data
+def get_requests():
     try:
-        result = service.spreadsheets().values().get(
+        # Fetch data from Google Sheets
+        sheet = service.spreadsheets().values().get(
             spreadsheetId=SPREADSHEET_ID,
-            range=range_
+            range='Requests!A:E'
         ).execute()
 
-        rows = result.get('values', [])
-        if not rows:
-            return jsonify({'message': 'No data found'}), 404
+        rows = sheet.get('values', [])
 
-        # Convert rows to a more structured response
         requests = []
-        for row in rows:
-            requests.append({
-                'scode': row[0],
-                'sname': row[1],
-                'dates': row[2],
-                'status': row[3]
-            })
+        for index, row in enumerate(rows, start=1):  # Enumerate to get row index starting at 1
+            if len(row) >= 5:  # Ensure there's enough data in the row
+                requests.append({
+                    'rowIndex': index,       # Capture row number for updates
+                    'scode': row[0],
+                    'sname': row[1],
+                    'dates': row[2],
+                    'status': row[3]         # Assuming status is in column D
+                })
 
         return jsonify({'requests': requests})
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 
 
