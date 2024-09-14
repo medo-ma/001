@@ -162,7 +162,7 @@ def handle_CustomElement(params):
 @app.route('/api/sheets/requests', methods=['GET'])
 def get_vacation_requests():
     # Define the range to fetch (e.g., columns A to D)
-    range_ = 'Requests!A:D'
+    range_ = 'Requests-E!A:D'
 
     # Use Google Sheets API to get the data
     try:
