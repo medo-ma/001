@@ -82,6 +82,47 @@ def add_data_to_sheet():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+#admin
+@app.route('/api/sheets/update-status', methods=['POST'])
+def update_vacation_status():
+    data = request.get_json()
+    scode = data.get('scode')
+    status = data.get('status')
+
+    if not scode or not status:
+        return jsonify({'error': 'Student code and status are required'}), 400
+
+    # Find the correct row based on the student code
+    range_ = 'Requests!A:D'  # Adjust the range as needed
+    try:
+        result = service.spreadsheets().values().get(
+            spreadsheetId=SPREADSHEET_ID,
+            range=range_
+        ).execute()
+        rows = result.get('values', [])
+
+        # Find the row that matches the student code
+        for idx, row in enumerate(rows):
+            if row[0] == scode:
+                # Update the status in the correct row
+                body = {
+                    'values': [[status]]
+                }
+                update_range = f'Requests!D{idx + 1}'  # D is the column for status
+                service.spreadsheets().values().update(
+                    spreadsheetId=SPREADSHEET_ID,
+                    range=update_range,
+                    valueInputOption='RAW',
+                    body=body
+                ).execute()
+
+                return jsonify({'status': 'success'})
+
+        return jsonify({'error': 'Student code not found'}), 404
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 
 
@@ -177,23 +218,23 @@ def get_student_requests_c():
             return jsonify({'message': 'No data found'}), 404
 
         # Initialize an empty list to store filtered requests
-        student_requests = []
+        student_requests_c = []
 
         # Loop through each row, checking if it has the required number of columns
         for row in rows:
             # Only process rows with enough columns
             if len(row) >= 4 and row[0] == scode:  # Check if row has at least 4 columns
-                student_requests.append({
+                student_requests_c.append({
                     'scode': row[0],     # Student code
                     'sname': row[1],     # Student name
                     'dates': row[2],     # Vacation dates (can be stored as JSON or a combined string)
                     'status': row[3]     # Status (Pending, Approved, Rejected)
                 })
 
-        if not student_requests:
+        if not student_requests_c:
             return jsonify({'message': 'No vacation requests found for this student'}), 404
 
-        return jsonify({'requests': student_requests})
+        return jsonify({'requests': student_requests_c})
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -219,23 +260,56 @@ def get_student_requests_e():
             return jsonify({'message': 'No data found'}), 404
 
         # Initialize an empty list to store filtered requests
-        student_requests = []
+        student_requests_e = []
 
         # Loop through each row, checking if it has the required number of columns
         for row in rows:
             # Only process rows with enough columns
             if len(row) >= 4 and row[0] == scode:  # Check if row has at least 4 columns
-                student_requests.append({
+                student_requests_e.append({
                     'scode': row[0],     # Student code
                     'sname': row[1],     # Student name
                     'dates': row[2],     # Vacation dates (can be stored as JSON or a combined string)
                     'status': row[3]     # Status (Pending, Approved, Rejected)
                 })
 
-        if not student_requests:
+        if not student_requests_e:
             return jsonify({'message': 'No vacation requests found for this student'}), 404
 
-        return jsonify({'requests': student_requests})
+        return jsonify({'requests': student_requests_e})
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+#admin
+@app.route('/api/sheets/requests', methods=['GET'])
+def get_vacation_requests():
+    # Define the range to fetch (e.g., columns A to D)
+    range_ = 'Requests!A:D'
+
+    # Use Google Sheets API to get the data
+    try:
+        result = service.spreadsheets().values().get(
+            spreadsheetId=SPREADSHEET_ID,
+            range=range_
+        ).execute()
+
+        rows = result.get('values', [])
+        if not rows:
+            return jsonify({'message': 'No data found'}), 404
+
+        # Convert rows to a more structured response
+        requests = []
+        for row in rows:
+            requests.append({
+                'scode': row[0],
+                'sname': row[1],
+                'dates': row[2],
+                'status': row[3]
+            })
+
+        return jsonify({'requests': requests})
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
