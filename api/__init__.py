@@ -63,9 +63,6 @@ def add_data_to_sheet():
     # Prepare the values to be added
     values = [[column_a_value, column_b_value,column_c_value,column_d_value]]
     
-    # Prepare the values to be added requests
-    values = [date for date in values[0][2] if not (date["month"] == 0 and date["day"] == 0)]
-    
     body = {
         'values': values
     }
