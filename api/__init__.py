@@ -89,94 +89,63 @@ def update_status():
     
     scode = data.get('scode')
     status = data.get('status')
-    dates_str = data.get('dates')
+    dates = data.get('dates')
     
-    if not scode or not status or not dates_str:
-        return jsonify({'error': 'Scode, status, and dates are required'}), 400
+    if not scode or not status or not dates:
+        return jsonify({'error': 'Student code, status, and dates are required'}), 400
 
     try:
-        # Update the status in the "Requests-C" sheet
-        status_range = 'Requests-C!D2:D'  # Assume statuses are in column D starting from row 2
-        result = service.spreadsheets().values().get(
+        # Find the row with the student code in the Requests-C sheet
+        response = service.spreadsheets().values().get(
             spreadsheetId=SPREADSHEET_ID,
-            range=status_range
+            range='Requests-C!A:A'  # Column A where student codes are located
         ).execute()
-        
-        values = result.get('values', [])
+
+        student_codes = response.get('values', [])
         row_index = None
 
-        # Find the row index where scode matches in the "Requests-C" sheet
-        for i, row in enumerate(values, start=2):  # Start from row 2 (assuming headers in row 1)
+        # Search for the student code
+        for i, row in enumerate(student_codes):
             if row and row[0] == scode:
-                row_index = i
+                row_index = i + 1  # Row index is 1-based
                 break
-        
+
         if row_index is None:
             return jsonify({'error': 'Student code not found in Requests-C sheet'}), 404
-        
-        # Update status
+
+        # Update the status of the request
+        status_range = f'Requests-C!B{row_index}'
         status_body = {'values': [[status]]}
         service.spreadsheets().values().update(
             spreadsheetId=SPREADSHEET_ID,
-            range=f'Requests-C!D{row_index}',
+            range=status_range,
             valueInputOption='RAW',
             body=status_body
         ).execute()
 
-        # Find the correct row in the sheet with vacation days
-        sheet_name = f'Sheet{int(json.loads(dates_str)["first"]["month"])}'  # Format month as Sheet{month}
-        vacation_range = f'{sheet_name}!A:A'  # Search in column A
-        result = service.spreadsheets().values().get(
-            spreadsheetId=SPREADSHEET_ID,
-            range=vacation_range
-        ).execute()
-        
-        values = result.get('values', [])
-        vacation_row_index = None
-
-        # Find the row index where scode matches in the vacation sheet
-        for i, row in enumerate(values, start=1):  # Start from row 1
-            if row and row[0] == scode:
-                vacation_row_index = i
-                break
-        
-        if vacation_row_index is None:
-            return jsonify({'error': 'Student code not found in vacation sheet'}), 404
-
-        # Map days to columns
-        day_to_column = {
-            1: 'D', 2: 'E', 3: 'F', 4: 'G', 5: 'H', 6: 'I', 7: 'J', 8: 'K', 
-            9: 'L', 10: 'M', 11: 'N', 12: 'O', 13: 'P', 14: 'Q', 15: 'R', 
-            16: 'S', 17: 'T', 18: 'U', 19: 'V', 20: 'W', 21: 'X', 22: 'Y', 
-            23: 'Z', 24: 'AA', 25: 'AB', 26: 'AC', 27: 'AD', 28: 'AE', 
-            29: 'AF', 30: 'AG', 31: 'AH'
-        }
-        
-        # Parse dates and mark vacation days
-        date_values = json.loads(dates_str)
-        for key in date_values.keys():
-            day = int(date_values[key]['day'])
-            column_letter = day_to_column.get(day)  # Map day to column letter
-            if not column_letter:
-                continue  # Skip if day is out of range
-
-            # Update the vacation day cell in the correct sheet and row
-            vacation_range = f'{sheet_name}!{column_letter}{vacation_row_index}'  # Convert column number to letter
-            vacation_values = [['C']]
-            vacation_body = {'values': vacation_values}
-
-            # Use Google Sheets API to update the vacation day cell
-            service.spreadsheets().values().update(
-                spreadsheetId=SPREADSHEET_ID,
-                range=vacation_range,
-                valueInputOption='RAW',
-                body=vacation_body
-            ).execute()
+        # Update vacation days
+        date_values = json.loads(dates)
+        for key in ['first', 'second', 'third']:
+            date = date_values.get(key)
+            if date:
+                month = int(date['month'])
+                day = int(date['day'])
+                column = day + 3  # Adjust for the starting column (D = 4th column)
+                sheet_name = f'Sheet{month}'
+                vacation_range = f'{sheet_name}!{chr(64 + column)}{row_index}'
+                vacation_body = {'values': [['C']]}
+                service.spreadsheets().values().update(
+                    spreadsheetId=SPREADSHEET_ID,
+                    range=vacation_range,
+                    valueInputOption='RAW',
+                    body=vacation_body
+                ).execute()
 
         return jsonify({'status': 'success'})
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 #
 
