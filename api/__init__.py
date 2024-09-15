@@ -87,34 +87,35 @@ def add_data_to_sheet():
 def update_status():
     data = request.get_json()
     
-    status = data.get('status')
     scode = data.get('scode')
+    status = data.get('status')
     dates = data.get('dates')
     
-    if not status or not scode or not dates:
-        return jsonify({'error': 'Status, scode, and dates are required'}), 400
+    if not scode or not status or not dates:
+        return jsonify({'error': 'Scode, status, and dates are required'}), 400
 
     try:
-        date_values = json.loads(dates)
-        
-        # Find the row index of the scode
+        # Fetch all data from the Requests-C sheet to find the row index
+        sheet_range = 'Requests-C!A2:A'  # Assume student codes are in column A starting from row 2
         result = service.spreadsheets().values().get(
             spreadsheetId=SPREADSHEET_ID,
-            range='Requests-C!A:A'
+            range=sheet_range
         ).execute()
-        values = result.get('values', [])
         
+        values = result.get('values', [])
         row_index = None
-        for i, row in enumerate(values, start=1):
+
+        # Find the row index where scode matches
+        for i, row in enumerate(values, start=2):  # Start from row 2 (assuming headers in row 1)
             if row and row[0] == scode:
                 row_index = i
                 break
         
-        if not row_index:
-            return jsonify({'error': 'scode not found'}), 404
-
+        if row_index is None:
+            return jsonify({'error': 'Student code not found'}), 404
+        
         # Update status
-        status_range = f'Requests-C!D{row_index}'
+        status_range = f'Requests-C!D{row_index}'  # Status column D
         status_body = {'values': [[status]]}
         service.spreadsheets().values().update(
             spreadsheetId=SPREADSHEET_ID,
@@ -133,6 +134,7 @@ def update_status():
         }
         
         # Mark vacation days
+        date_values = json.loads(dates)
         for key in date_values.keys():
             day = date_values[key]['day']
             month = date_values[key]['month']
