@@ -87,7 +87,9 @@ def add_data_to_sheet():
 def update_status():
     data = request.get_json()
 
-    # Extract the necessary data from the request
+    # Log the incoming data
+    app.logger.info(f"Incoming data: {data}")
+
     scode = data.get('scode')
     dates = data.get('dates')
     row_index = data.get('row_index')
@@ -95,6 +97,8 @@ def update_status():
 
     if not scode or not dates or not row_index or not status:
         return jsonify({'error': 'Student code, dates, row index, and status are required'}), 400
+
+    # Your existing logic here
 
     try:
         # Update the status in the sheet
