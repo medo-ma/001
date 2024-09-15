@@ -91,19 +91,20 @@ def update_status():
     row_index = data.get('row_index')
     status = data.get('status')
     scode = data.get('scode')
-    dates = data.get('dates')  # Expecting dates in JSON format
-
+    dates = data.get('dates')
+    
     if not row_index or not status or not scode or not dates:
-        return jsonify({'error': 'Row index, status, scode, and dates are required'}), 400
+        return jsonify({'error': 'Row index, status, student code, and dates are required'}), 400
 
     try:
-        # Define the range to update the status in "Requests-C"
+        # Define the range to update the status
         status_range = f'Requests-C!D{row_index}'
+
         # Prepare the values to update the status
         status_values = [[status]]
         status_body = {'values': status_values}
 
-        # Update the status cell
+        # Use Google Sheets API to update the status in the correct row
         service.spreadsheets().values().update(
             spreadsheetId=SPREADSHEET_ID,
             range=status_range,
@@ -111,30 +112,27 @@ def update_status():
             body=status_body
         ).execute()
 
-        # Parse dates to calculate the cell to update
-        dates_dict = json.loads(dates)
-        for key, date in dates_dict.items():
-            if date:
-                month = date.get('month')
-                day = date.get('day')
-                if month and day:
-                    # Calculate the cell based on month and day
-                    col_letter = chr(64 + int(day))  # Convert day to column letter (e.g., 1 -> A, 2 -> B)
-                    date_range = f'Sheet{month}!{col_letter}{row_index}'
-                    
-                    # Prepare the values to update the date cell with 'C'
-                    date_values = [['C']]
-                    date_body = {'values': date_values}
+        # Mark vacation days
+        date_values = JSON.parse(dates);
+        for key in date_values.keys():
+            day = date_values[key].day
+            month = date_values[key].month
+            column = int(day)  # Column number based on the day
+            vacation_range = f'Requests-C!{chr(64 + column)}{row_index}'  # Convert column number to letter
 
-                    # Update the date cell
-                    service.spreadsheets().values().update(
-                        spreadsheetId=SPREADSHEET_ID,
-                        range=date_range,
-                        valueInputOption='RAW',
-                        body=date_body
-                    ).execute()
+            # Prepare the values to mark the vacation day
+            vacation_values = [['C']]
+            vacation_body = {'values': vacation_values}
 
-        return jsonify({'status': 'success'}), 200
+            # Use Google Sheets API to update the vacation day cell
+            service.spreadsheets().values().update(
+                spreadsheetId=SPREADSHEET_ID,
+                range=vacation_range,
+                valueInputOption='RAW',
+                body=vacation_body
+            ).execute()
+
+        return jsonify({'status': 'success'})
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
