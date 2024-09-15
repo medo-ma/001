@@ -87,38 +87,21 @@ def add_data_to_sheet():
 def update_status():
     data = request.get_json()
     
+    row_index = data.get('row_index')
     scode = data.get('scode')
     status = data.get('status')
     dates_str = data.get('dates')
     
-    if not scode or not status or not dates_str:
-        return jsonify({'error': 'Scode, status, and dates are required'}), 400
+    if not row_index or not scode or not status or not dates_str:
+        return jsonify({'error': 'Row index, scode, status, and dates are required'}), 400
 
     try:
         # Update the status in the "Requests-C" sheet
-        status_range = 'Requests-C!A:D'  # Include columns A to D
-        result = service.spreadsheets().values().get(
-            spreadsheetId=SPREADSHEET_ID,
-            range=status_range
-        ).execute()
-        
-        values = result.get('values', [])
-        row_index = None
-
-        # Find the row index where scode matches in column A of the "Requests-C" sheet
-        for i, row in enumerate(values, start=1):  # Start from row 1
-            if row and len(row) > 0 and row[0] == scode:
-                row_index = i
-                break
-        
-        if row_index is None:
-            return jsonify({'error': 'Student code not found in Requests-C sheet'}), 404
-        
-        # Update status
+        status_range = f'Requests-C!D{row_index}'  # Status column D
         status_body = {'values': [[status]]}
         service.spreadsheets().values().update(
             spreadsheetId=SPREADSHEET_ID,
-            range=f'Requests-C!D{row_index}',  # Status column D
+            range=status_range,
             valueInputOption='RAW',
             body=status_body
         ).execute()
