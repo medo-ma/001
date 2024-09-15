@@ -108,13 +108,25 @@ def update_status():
             body=status_body
         ).execute()
 
+        # Map days to columns
+        day_to_column = {
+            1: 'D', 2: 'E', 3: 'F', 4: 'G', 5: 'H', 6: 'I', 7: 'J', 8: 'K', 
+            9: 'L', 10: 'M', 11: 'N', 12: 'O', 13: 'P', 14: 'Q', 15: 'R', 
+            16: 'S', 17: 'T', 18: 'U', 19: 'V', 20: 'W', 21: 'X', 22: 'Y', 
+            23: 'Z', 24: 'AA', 25: 'AB', 26: 'AC', 27: 'AD', 28: 'AE', 
+            29: 'AF', 30: 'AG', 31: 'AH'
+        }
+        
         # Mark vacation days
         for key in date_values.keys():
             day = date_values[key]['day']
             month = date_values[key]['month']
-            column = int(day)  # Column number based on the day
+            column_letter = day_to_column.get(int(day))  # Map day to column letter
+            if not column_letter:
+                continue  # Skip if day is out of range
+
             sheet_name = f'Sheet{int(month)}'  # Format month without leading zeros
-            vacation_range = f'{sheet_name}!{chr(64 + column)}{row_index}'  # Convert column number to letter
+            vacation_range = f'{sheet_name}!{column_letter}{row_index}'  # Convert column number to letter
 
             # Prepare the values to mark the vacation day
             vacation_values = [['C']]
