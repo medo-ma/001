@@ -290,19 +290,16 @@ def get_requests():
 
         rows = sheet.get('values', [])
 
+        # Skip the header row and process the rest
         requests = []
-        # Debugging: print rows to check the data structure
-        print("Rows fetched from Google Sheets:", rows)
-
-        # Iterate over the rows and check if there's enough data in each row
-        for index, row in enumerate(rows, start=1):  # Enumerate to get row index starting at 1
-            if len(row) >= 5:  # Make sure there are at least 5 columns (A, B, C, D, E)
+        for index, row in enumerate(rows[1:], start=2):  # Start index at 2 to reflect the actual row number in the sheet
+            if len(row) >= 4:  # Ensure there are at least 4 columns (A, B, C, D)
                 requests.append({
                     'rowIndex': index,       # Capture row number for updates
                     'scode': row[0],
                     'sname': row[1],
                     'dates': row[2],         # Dates stored in JSON format
-                    'status': row[3]         # Assuming status is in column D
+                    'status': row[3]         # Status in column D
                 })
 
         # Debugging: print out the processed requests
