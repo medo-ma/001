@@ -106,6 +106,10 @@ def update_status():
             body=status_body
         ).execute()
 
+        if status != 'Approved':
+            # If the status is not "Approved", do not update vacation days
+            return jsonify({'status': 'success'})
+
         # Find the correct row in the sheet with vacation days
         month = json.loads(dates_str).get('first', {}).get('month', '1')
         sheet_name = f'Sheet{int(month)}'  # Format month as Sheet{month}
