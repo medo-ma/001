@@ -331,11 +331,12 @@ def get_student_requests_e():
 #admin
 @app.route('/api/sheets/requests', methods=['GET'])
 def get_requests():
+    type_v = request.args.get("type")
     try:
         # Fetch data from Google Sheets
         sheet = service.spreadsheets().values().get(
             spreadsheetId=SPREADSHEET_ID,
-            range='Requests-C!A:E'  # Updated to reflect the correct sheet name
+            range=f'Requests-{type_v}!A:E'  # Updated to reflect the correct sheet name
         ).execute()
 
         # Debugging: print the entire API response to see what is returned
