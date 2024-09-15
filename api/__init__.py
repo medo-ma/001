@@ -87,33 +87,58 @@ def add_data_to_sheet():
 def update_status():
     data = request.get_json()
     
-    # Extract row index and status from the request
+    # Extract data from the request
     row_index = data.get('row_index')
     status = data.get('status')
-    
-    if not row_index or not status:
-        return jsonify({'error': 'Row index and status are required'}), 400
+    scode = data.get('scode')
+    dates = data.get('dates')  # Expecting dates in JSON format
+
+    if not row_index or not status or not scode or not dates:
+        return jsonify({'error': 'Row index, status, scode, and dates are required'}), 400
 
     try:
-        # Define the range to update (assuming the status is in column D, for example)
-        range_ = f'Requests-C!D{row_index}'
-
+        # Define the range to update the status in "Requests-C"
+        status_range = f'Requests-C!D{row_index}'
         # Prepare the values to update the status
-        values = [[status]]
-        body = {'values': values}
+        status_values = [[status]]
+        status_body = {'values': status_values}
 
-        # Use Google Sheets API to update the status in the correct row
-        result = service.spreadsheets().values().update(
+        # Update the status cell
+        service.spreadsheets().values().update(
             spreadsheetId=SPREADSHEET_ID,
-            range=range_,
+            range=status_range,
             valueInputOption='RAW',
-            body=body
+            body=status_body
         ).execute()
 
-        return jsonify({'status': 'success', 'result': result})
+        # Parse dates to calculate the cell to update
+        dates_dict = json.loads(dates)
+        for key, date in dates_dict.items():
+            if date:
+                month = date.get('month')
+                day = date.get('day')
+                if month and day:
+                    # Calculate the cell based on month and day
+                    col_letter = chr(64 + int(day))  # Convert day to column letter (e.g., 1 -> A, 2 -> B)
+                    date_range = f'Sheet{month}!{col_letter}{row_index}'
+                    
+                    # Prepare the values to update the date cell with 'C'
+                    date_values = [['C']]
+                    date_body = {'values': date_values}
+
+                    # Update the date cell
+                    service.spreadsheets().values().update(
+                        spreadsheetId=SPREADSHEET_ID,
+                        range=date_range,
+                        valueInputOption='RAW',
+                        body=date_body
+                    ).execute()
+
+        return jsonify({'status': 'success'}), 200
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 
 
