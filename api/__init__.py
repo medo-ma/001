@@ -91,13 +91,14 @@ def update_status():
     scode = data.get('scode')
     status = data.get('status')
     dates_str = data.get('dates')
+    type_v = data.get('type')
     
     if not row_index or not scode or not status or not dates_str:
         return jsonify({'error': 'Row index, scode, status, and dates are required'}), 400
 
     try:
         # Update the status in the "Requests-C" sheet
-        status_range = f'Requests-C!D{row_index}'  # Status column D
+        status_range = f'Requests-{type_v}!D{row_index}'  # Status column D
         status_body = {'values': [[status]]}
         service.spreadsheets().values().update(
             spreadsheetId=SPREADSHEET_ID,
@@ -150,7 +151,7 @@ def update_status():
 
             # Update the vacation day cell in the correct sheet and row
             vacation_range = f'{sheet_name}!{column_letter}{vacation_row_index}'  # Convert column number to letter
-            vacation_values = [['C']]
+            vacation_values = [[type_v]]
             vacation_body = {'values': vacation_values}
 
             # Use Google Sheets API to update the vacation day cell
