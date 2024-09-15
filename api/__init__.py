@@ -87,32 +87,33 @@ def add_data_to_sheet():
 def update_status():
     data = request.get_json()
     
-    scode = data.get('scode')
     status = data.get('status')
+    scode = data.get('scode')
     dates = data.get('dates')
     
-    if not scode or not status or not dates:
-        return jsonify({'error': 'Scode, status, and dates are required'}), 400
+    if not status or not scode or not dates:
+        return jsonify({'error': 'Status, scode, and dates are required'}), 400
 
     try:
-        # Step 1: Find the row index for the scode
-        range_name = 'Requests-C!A:A'  # Column A contains student codes
+        date_values = json.loads(dates)
+        
+        # Find the row index of the scode
         result = service.spreadsheets().values().get(
             spreadsheetId=SPREADSHEET_ID,
-            range=range_name
+            range='Requests-C!A:A'
         ).execute()
         values = result.get('values', [])
         
         row_index = None
-        for index, row in enumerate(values):
-            if len(row) > 0 and row[0] == scode:
-                row_index = index + 1  # Google Sheets uses 1-based indexing
+        for i, row in enumerate(values, start=1):
+            if row and row[0] == scode:
+                row_index = i
                 break
         
-        if row_index is None:
-            return jsonify({'error': 'Scode not found'}), 404
-        
-        # Step 2: Update status
+        if not row_index:
+            return jsonify({'error': 'scode not found'}), 404
+
+        # Update status
         status_range = f'Requests-C!D{row_index}'
         status_body = {'values': [[status]]}
         service.spreadsheets().values().update(
@@ -122,7 +123,7 @@ def update_status():
             body=status_body
         ).execute()
 
-        # Step 3: Mark vacation days
+        # Map days to columns
         day_to_column = {
             1: 'D', 2: 'E', 3: 'F', 4: 'G', 5: 'H', 6: 'I', 7: 'J', 8: 'K', 
             9: 'L', 10: 'M', 11: 'N', 12: 'O', 13: 'P', 14: 'Q', 15: 'R', 
@@ -130,17 +131,17 @@ def update_status():
             23: 'Z', 24: 'AA', 25: 'AB', 26: 'AC', 27: 'AD', 28: 'AE', 
             29: 'AF', 30: 'AG', 31: 'AH'
         }
-
-        date_values = json.loads(dates)
+        
+        # Mark vacation days
         for key in date_values.keys():
-            day = int(date_values[key]['day'])
-            month = int(date_values[key]['month'])
-            column_letter = day_to_column.get(day)  # Map day to column letter
+            day = date_values[key]['day']
+            month = date_values[key]['month']
+            column_letter = day_to_column.get(int(day))  # Map day to column letter
             if not column_letter:
                 continue  # Skip if day is out of range
 
-            sheet_name = f'Sheet{month}'  # Format month as Sheet1, Sheet2, etc.
-            vacation_range = f'{sheet_name}!{column_letter}{row_index}'  # Combine sheet name, column letter, and row index
+            sheet_name = f'Sheet{int(month)}'  # Format month without leading zeros
+            vacation_range = f'{sheet_name}!{column_letter}{row_index}'  # Convert column number to letter
 
             # Prepare the values to mark the vacation day
             vacation_values = [['C']]
