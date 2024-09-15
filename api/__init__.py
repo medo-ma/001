@@ -282,7 +282,7 @@ def get_requests():
         # Fetch data from Google Sheets
         sheet = service.spreadsheets().values().get(
             spreadsheetId=SPREADSHEET_ID,
-            range='Requests-C!A:D'  # Ensure this range has the data you need
+            range='Requests-C!A:E'  # Updated to reflect the correct sheet name
         ).execute()
 
         # Debugging: print the entire API response to see what is returned
@@ -312,6 +312,7 @@ def get_requests():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 
 
