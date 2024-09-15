@@ -95,35 +95,54 @@ def update_status():
         return jsonify({'error': 'Scode, status, and dates are required'}), 400
 
     try:
-        # Fetch all data from the Requests-C sheet to find the row index
-        sheet_range = 'Requests-C!A2:A'  # Assume student codes are in column A starting from row 2
+        # Update the status in the "Requests-C" sheet
+        status_range = 'Requests-C!D2:D'  # Assume statuses are in column D starting from row 2
         result = service.spreadsheets().values().get(
             spreadsheetId=SPREADSHEET_ID,
-            range=sheet_range
+            range=status_range
         ).execute()
         
         values = result.get('values', [])
         row_index = None
 
-        # Find the row index where scode matches
+        # Find the row index where scode matches in the "Requests-C" sheet
         for i, row in enumerate(values, start=2):  # Start from row 2 (assuming headers in row 1)
             if row and row[0] == scode:
                 row_index = i
                 break
         
         if row_index is None:
-            return jsonify({'error': 'Student code not found'}), 404
+            return jsonify({'error': 'Student code not found in Requests-C sheet'}), 404
         
         # Update status
-        status_range = f'Requests-C!D{row_index}'  # Status column D
         status_body = {'values': [[status]]}
         service.spreadsheets().values().update(
             spreadsheetId=SPREADSHEET_ID,
-            range=status_range,
+            range=f'Requests-C!D{row_index}',
             valueInputOption='RAW',
             body=status_body
         ).execute()
 
+        # Find the correct row in the sheet with vacation days
+        sheet_name = f'Sheet{int(dates["first"]["month"])}'  # Format month as Sheet{month}
+        vacation_range = f'{sheet_name}!A:A'  # Search in column A
+        result = service.spreadsheets().values().get(
+            spreadsheetId=SPREADSHEET_ID,
+            range=vacation_range
+        ).execute()
+        
+        values = result.get('values', [])
+        vacation_row_index = None
+
+        # Find the row index where scode matches in the vacation sheet
+        for i, row in enumerate(values, start=1):  # Start from row 1
+            if row and row[0] == scode:
+                vacation_row_index = i
+                break
+        
+        if vacation_row_index is None:
+            return jsonify({'error': 'Student code not found in vacation sheet'}), 404
+        
         # Map days to columns
         day_to_column = {
             1: 'D', 2: 'E', 3: 'F', 4: 'G', 5: 'H', 6: 'I', 7: 'J', 8: 'K', 
@@ -142,10 +161,8 @@ def update_status():
             if not column_letter:
                 continue  # Skip if day is out of range
 
-            sheet_name = f'Sheet{int(month)}'  # Format month without leading zeros
-            vacation_range = f'{sheet_name}!{column_letter}{row_index}'  # Convert column number to letter
-
-            # Prepare the values to mark the vacation day
+            # Update the vacation day cell in the correct sheet and row
+            vacation_range = f'{sheet_name}!{column_letter}{vacation_row_index}'  # Convert column number to letter
             vacation_values = [['C']]
             vacation_body = {'values': vacation_values}
 
