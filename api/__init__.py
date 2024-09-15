@@ -89,9 +89,9 @@ def update_status():
     
     scode = data.get('scode')
     status = data.get('status')
-    dates = data.get('dates')
+    dates_str = data.get('dates')
     
-    if not scode or not status or not dates:
+    if not scode or not status or not dates_str:
         return jsonify({'error': 'Scode, status, and dates are required'}), 400
 
     try:
@@ -124,7 +124,7 @@ def update_status():
         ).execute()
 
         # Find the correct row in the sheet with vacation days
-        sheet_name = f'Sheet{int(dates["first"]["month"])}'  # Format month as Sheet{month}
+        sheet_name = f'Sheet{int(json.loads(dates_str)["first"]["month"])}'  # Format month as Sheet{month}
         vacation_range = f'{sheet_name}!A:A'  # Search in column A
         result = service.spreadsheets().values().get(
             spreadsheetId=SPREADSHEET_ID,
@@ -142,7 +142,7 @@ def update_status():
         
         if vacation_row_index is None:
             return jsonify({'error': 'Student code not found in vacation sheet'}), 404
-        
+
         # Map days to columns
         day_to_column = {
             1: 'D', 2: 'E', 3: 'F', 4: 'G', 5: 'H', 6: 'I', 7: 'J', 8: 'K', 
@@ -152,12 +152,11 @@ def update_status():
             29: 'AF', 30: 'AG', 31: 'AH'
         }
         
-        # Mark vacation days
-        date_values = json.loads(dates)
+        # Parse dates and mark vacation days
+        date_values = json.loads(dates_str)
         for key in date_values.keys():
-            day = date_values[key]['day']
-            month = date_values[key]['month']
-            column_letter = day_to_column.get(int(day))  # Map day to column letter
+            day = int(date_values[key]['day'])
+            column_letter = day_to_column.get(day)  # Map day to column letter
             if not column_letter:
                 continue  # Skip if day is out of range
 
