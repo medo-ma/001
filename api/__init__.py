@@ -87,18 +87,32 @@ def add_data_to_sheet():
 def update_status():
     data = request.get_json()
     
-    row_index = data.get('row_index')
-    status = data.get('status')
     scode = data.get('scode')
+    status = data.get('status')
     dates = data.get('dates')
     
-    if not row_index or not status or not scode or not dates:
-        return jsonify({'error': 'Row index, status, scode, and dates are required'}), 400
+    if not scode or not status or not dates:
+        return jsonify({'error': 'Scode, status, and dates are required'}), 400
 
     try:
-        date_values = json.loads(dates)
+        # Step 1: Find the row index for the scode
+        range_name = 'Requests-C!A:A'  # Column A contains student codes
+        result = service.spreadsheets().values().get(
+            spreadsheetId=SPREADSHEET_ID,
+            range=range_name
+        ).execute()
+        values = result.get('values', [])
         
-        # Update status
+        row_index = None
+        for index, row in enumerate(values):
+            if len(row) > 0 and row[0] == scode:
+                row_index = index + 1  # Google Sheets is 1-based index
+                break
+        
+        if row_index is None:
+            return jsonify({'error': 'Scode not found'}), 404
+        
+        # Step 2: Update status
         status_range = f'Requests-C!D{row_index}'
         status_body = {'values': [[status]]}
         service.spreadsheets().values().update(
@@ -108,7 +122,7 @@ def update_status():
             body=status_body
         ).execute()
 
-        # Map days to columns
+        # Step 3: Mark vacation days
         day_to_column = {
             1: 'D', 2: 'E', 3: 'F', 4: 'G', 5: 'H', 6: 'I', 7: 'J', 8: 'K', 
             9: 'L', 10: 'M', 11: 'N', 12: 'O', 13: 'P', 14: 'Q', 15: 'R', 
@@ -116,8 +130,8 @@ def update_status():
             23: 'Z', 24: 'AA', 25: 'AB', 26: 'AC', 27: 'AD', 28: 'AE', 
             29: 'AF', 30: 'AG', 31: 'AH'
         }
-        
-        # Mark vacation days
+
+        date_values = json.loads(dates)
         for key in date_values.keys():
             day = date_values[key]['day']
             month = date_values[key]['month']
