@@ -106,7 +106,7 @@ def update_status():
         row_index = None
         for index, row in enumerate(values):
             if len(row) > 0 and row[0] == scode:
-                row_index = index + 1  # Google Sheets is 1-based index
+                row_index = index + 1  # Google Sheets uses 1-based indexing
                 break
         
         if row_index is None:
@@ -133,14 +133,14 @@ def update_status():
 
         date_values = json.loads(dates)
         for key in date_values.keys():
-            day = date_values[key]['day']
-            month = date_values[key]['month']
-            column_letter = day_to_column.get(int(day))  # Map day to column letter
+            day = int(date_values[key]['day'])
+            month = int(date_values[key]['month'])
+            column_letter = day_to_column.get(day)  # Map day to column letter
             if not column_letter:
                 continue  # Skip if day is out of range
 
-            sheet_name = f'Sheet{int(month)}'  # Format month without leading zeros
-            vacation_range = f'{sheet_name}!{column_letter}{row_index}'  # Convert column number to letter
+            sheet_name = f'Sheet{month}'  # Format month as Sheet1, Sheet2, etc.
+            vacation_range = f'{sheet_name}!{column_letter}{row_index}'  # Combine sheet name, column letter, and row index
 
             # Prepare the values to mark the vacation day
             vacation_values = [['C']]
