@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
-import json
+import json  # Import the json module
 import base64
 import os
 app = Flask(__name__)
@@ -112,12 +112,12 @@ def update_status():
             body=status_body
         ).execute()
 
-        # Mark vacation days
-        date_values = JSON.parse(dates);
-        for key in date_values.keys():
-            day = date_values[key].day
-            month = date_values[key].month
-            column = int(day)  # Column number based on the day
+        # Parse the JSON string to a Python dictionary
+        date_values = json.loads(dates)
+        for key in date_values:
+            day = int(date_values[key]['day'])
+            month = int(date_values[key]['month'])
+            column = day  # Column number based on the day
             vacation_range = f'Requests-C!{chr(64 + column)}{row_index}'  # Convert column number to letter
 
             # Prepare the values to mark the vacation day
