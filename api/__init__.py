@@ -265,7 +265,7 @@ def handle_search(params):
         return jsonify({'status': 'false', 'matches': '0'})
 
 def sign_in(params):
-    search_query = params.get('search', '').strip()
+    search_query = params.get('sign_in', '').strip()
     columns = params.get('columns', 'A').split(',')
 
     if not search_query:
