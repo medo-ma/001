@@ -95,13 +95,13 @@ def add_data_to_sheet():
 def change_pass():
     data = request.get_json()
     scode = data.get('scode')
-    
+    new_pass = data.get('pass')
     try:
         # Find the cell you know
         cell = sheet.find(scode)
 
         # Update the cell in the same row but different column
-        sheet.update_cell(cell.row, cell.col + 1, 'New Value')
+        sheet.update_cell(cell.row, cell.col + 1, f'{new_pass}')
 
         return jsonify({'status': 'success'})
     except Exception as e:
