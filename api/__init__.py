@@ -6,6 +6,8 @@ import gspread
 import json  # Import the json module
 import base64
 import os
+from datetime import datetime
+
 app = Flask(__name__)
 CORS(app)  # This will enable CORS for all routes and origins
 
@@ -19,7 +21,9 @@ client = gspread.authorize(creds)
 service = build('sheets', 'v4', credentials=creds)
 
 SPREADSHEET_ID = '1Q4oOByDmCIgPzjhmzpPvotRXY_Ka3fLVFnNeSbrHUKo'
-sheet = client.open_by_key(SPREADSHEET_ID)
+current_month = datetime.now().month
+sheet_name = f'Sheet{current_month}'
+sheet = client.open_by_key(SPREADSHEET_ID).worksheet(sheet_name)
 
 @app.route('/api/sheets', methods=['POST'])
 def update_sheet():
