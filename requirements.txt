@@ -5,6 +5,6 @@ flask_cors==3.0.10
 werkzeug==2.0.3
 gspread
 oauth2client
-
-
+google-auth-oauthlib
+google-auth-httplib2
 
