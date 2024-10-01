@@ -20,14 +20,11 @@ service = build('sheets', 'v4', credentials=credentials)
 
 SPREADSHEET_ID = '1Q4oOByDmCIgPzjhmzpPvotRXY_Ka3fLVFnNeSbrHUKo'  # Replace with your Google Sheets ID
 #gspread
-SCOPES2 = ['https://www.googleapis.com/auth/spreadsheets']
-#SERVICE_ACCOUNT_BASE64 = os.environ.get('GOOGLE_SERVICE_ACCOUNT')
-#SERVICE_ACCOUNT_JSON = base64.b64decode(SERVICE_ACCOUNT_BASE64).decode('utf-8')
 SERVICE_ACCOUNT_INFO = json.loads(SERVICE_ACCOUNT_JSON)
 
-creds = ServiceAccountCredentials.from_json_keyfile_dict(SERVICE_ACCOUNT_INFO, SCOPES2)
+creds = ServiceAccountCredentials.from_json_keyfile_dict(SERVICE_ACCOUNT_INFO, SCOPES)
 client = gspread.authorize(creds)
-sheet = client.open('roter-app-2025')
+sheet = client.open('roter-app-2025').sheet1
 
 @app.route('/api/sheets', methods=['POST'])
 def update_sheet():
