@@ -240,13 +240,12 @@ def handle_count_in_row(params):
 def handle_search(params):
     search_query = params.get('search', '').strip()
     columns = params.get('columns', 'A').split(',')
-    sheet_ = params.get('sheet', 'Sheet1').strip()
 
     if not search_query:
         return jsonify({'error': 'No search query provided'}), 400
 
     sheet = service.spreadsheets()
-    range_ = f'{sheet_}!A1:BZ1000'  # Adjust range as needed
+    range_ = f'{sheet_name}!A1:BZ1000'  # Adjust range as needed
     result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=range_).execute()
     values = result.get('values', [])
 
