@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from google.oauth2.service_account import Credentials
+from oauth2client.service_account import ServiceAccountCredentials
+import gspread
 from googleapiclient.discovery import build
 import json  # Import the json module
 import base64
@@ -17,6 +19,12 @@ credentials = Credentials.from_service_account_info(
 service = build('sheets', 'v4', credentials=credentials)
 
 SPREADSHEET_ID = '1Q4oOByDmCIgPzjhmzpPvotRXY_Ka3fLVFnNeSbrHUKo'  # Replace with your Google Sheets ID
+#gspread
+SERVICE_ACCOUNT_JSON = base64.b64decode(SERVICE_ACCOUNT_BASE64).decode('utf-8')
+SERVICE_ACCOUNT_INFO = json.loads(SERVICE_ACCOUNT_JSON)
+creds = ServiceAccountCredentials.from_json_keyfile_dict(SERVICE_ACCOUNT_INFO, SCOPES)
+client = gspread.authorize(creds)
+sheet = client.open('roter-app-2025')
 
 @app.route('/api/sheets', methods=['POST'])
 def update_sheet():
@@ -81,6 +89,23 @@ def add_data_to_sheet():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+#change password
+@app.route('/api/sheets/change_pass', methods=['POST'])
+def change_pass ():
+    data = request.get_json()
+    scode = data.get('scode')
+    # Find the cell you know
+    cell = sheet.find(f'{scode}')
+
+    # Update the cell in the same row but different column
+    sheet.update_cell(cell.row, cell.col + 1, 'New Value')
+    return jsonify({'status': 'success'})
+
+
+
+
 
 #admin
 @app.route('/api/sheets/update-status', methods=['POST'])
