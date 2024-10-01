@@ -1,8 +1,8 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from google.oauth2.service_account import Credentials
-from oauth2client.service_account import ServiceAccountCredentials
 import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 from googleapiclient.discovery import build
 import json  # Import the json module
 import base64
@@ -20,9 +20,12 @@ service = build('sheets', 'v4', credentials=credentials)
 
 SPREADSHEET_ID = '1Q4oOByDmCIgPzjhmzpPvotRXY_Ka3fLVFnNeSbrHUKo'  # Replace with your Google Sheets ID
 #gspread
-SERVICE_ACCOUNT_JSON = base64.b64decode(SERVICE_ACCOUNT_BASE64).decode('utf-8')
+SCOPES2 = ['https://www.googleapis.com/auth/spreadsheets']
+#SERVICE_ACCOUNT_BASE64 = os.environ.get('GOOGLE_SERVICE_ACCOUNT')
+#SERVICE_ACCOUNT_JSON = base64.b64decode(SERVICE_ACCOUNT_BASE64).decode('utf-8')
 SERVICE_ACCOUNT_INFO = json.loads(SERVICE_ACCOUNT_JSON)
-creds = ServiceAccountCredentials.from_json_keyfile_dict(SERVICE_ACCOUNT_INFO, SCOPES)
+
+creds = ServiceAccountCredentials.from_json_keyfile_dict(SERVICE_ACCOUNT_INFO, SCOPES2)
 client = gspread.authorize(creds)
 sheet = client.open('roter-app-2025')
 
