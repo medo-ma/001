@@ -21,8 +21,7 @@ service = build('sheets', 'v4', credentials=credentials)
 SPREADSHEET_ID = '1Q4oOByDmCIgPzjhmzpPvotRXY_Ka3fLVFnNeSbrHUKo'  # Replace with your Google Sheets ID
 #gspread
 SERVICE_ACCOUNT_INFO = json.loads(SERVICE_ACCOUNT_JSON)
-
-creds = ServiceAccountCredentials.from_json_keyfile_dict(SERVICE_ACCOUNT_INFO, SCOPES)
+creds = Credentials.from_service_account_info(SERVICE_ACCOUNT_INFO, scopes=SCOPES)
 client = gspread.authorize(creds)
 sheet = client.open('roter-app-2025').sheet1
 
