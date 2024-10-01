@@ -88,15 +88,21 @@ def add_data_to_sheet():
 
 #change password
 @app.route('/api/sheets/change_pass', methods=['POST'])
-def change_pass ():
+def change_pass():
     data = request.get_json()
     scode = data.get('scode')
-    # Find the cell you know
-    cell = sheet.find(f'{scode}')
+    
+    try:
+        # Find the cell you know
+        cell = sheet.find(scode)
 
-    # Update the cell in the same row but different column
-    sheet.update_cell(cell.row, cell.col + 1, 'New Value')
-    return jsonify({'status': 'success'})
+        # Update the cell in the same row but different column
+        sheet.update_cell(cell.row, cell.col + 1, 'New Value')
+
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 
 
