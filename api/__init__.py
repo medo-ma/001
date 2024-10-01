@@ -20,10 +20,10 @@ service = build('sheets', 'v4', credentials=credentials)
 
 SPREADSHEET_ID = '1Q4oOByDmCIgPzjhmzpPvotRXY_Ka3fLVFnNeSbrHUKo'  # Replace with your Google Sheets ID
 #gspread
-SERVICE_ACCOUNT_INFO = json.loads(SERVICE_ACCOUNT_JSON)
-creds = Credentials.from_service_account_info(SERVICE_ACCOUNT_INFO, scopes=SCOPES)
-client = gspread.authorize(creds)
-sheet = client.open('roter-app-2025').sheet1
+# SERVICE_ACCOUNT_INFO = json.loads(SERVICE_ACCOUNT_JSON)
+# creds = Credentials.from_service_account_info(SERVICE_ACCOUNT_INFO, scopes=SCOPES)
+# client = gspread.authorize(creds)
+# sheet = client.open('roter-app-2025')
 
 @app.route('/api/sheets', methods=['POST'])
 def update_sheet():
@@ -91,16 +91,16 @@ def add_data_to_sheet():
 
 
 #change password
-@app.route('/api/sheets/change_pass', methods=['POST'])
-def change_pass ():
-    data = request.get_json()
-    scode = data.get('scode')
-    # Find the cell you know
-    cell = sheet.find(f'{scode}')
+# @app.route('/api/sheets/change_pass', methods=['POST'])
+# def change_pass ():
+#     data = request.get_json()
+#     scode = data.get('scode')
+#     # Find the cell you know
+#     cell = sheet.find(f'{scode}')
 
-    # Update the cell in the same row but different column
-    sheet.update_cell(cell.row, cell.col + 1, 'New Value')
-    return jsonify({'status': 'success'})
+#     # Update the cell in the same row but different column
+#     sheet.update_cell(cell.row, cell.col + 1, 'New Value')
+#     return jsonify({'status': 'success'})
 
 
 
