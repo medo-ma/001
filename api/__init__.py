@@ -201,18 +201,22 @@ def update_status():
 @app.route('/api/sheets/sign_in', methods=['POST'])
 def sign_in():
     data = request.get_json()
-    scode = data.get('scode')
+    search_value = data.get('scode')
     
     try:
         # Find the cell in column A
-        cell = sheet.find(scode, in_column=1)
+        cell = sheet.find(search_value, in_column=1)
+        
+        if cell is None:
+            return jsonify({'error': f'Value "{search_value}" not found in column A'}), 404
         
         # Get all values in the same row
         row_values = sheet.row_values(cell.row)
         
-        return jsonify({ 'matches': row_values ,'status': 'success'})
+        return jsonify({'status': 'success', 'row_values': row_values})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 
 
