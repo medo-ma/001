@@ -198,6 +198,22 @@ def update_status():
         return jsonify({'error': str(e)}), 500
 
 #
+@app.route('/api/sheets/sign_in', methods=['POST'])
+def sign_in():
+    data = request.get_json()
+    scode = data.get('scode')
+    
+    try:
+        # Find the cell in column A
+        cell = sheet.find(scode, in_column=1)
+        
+        # Get all values in the same row
+        row_values = sheet.row_values(cell.row)
+        
+        return jsonify({ 'matches': row_values ,'status': 'success'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 
 
@@ -264,30 +280,6 @@ def handle_search(params):
     else:
         return jsonify({'status': 'false', 'matches': '0'})
 
-def sign_in(params):
-    search_query = params.get('sign_in', '').strip()
-    columns = params.get('columns', 'A').split(',')
-
-    if not search_query:
-        return jsonify({'error': 'No search query provided'}), 400
-
-    sheet = service.spreadsheets()
-    range_ = f'{sheet_name}!A1'  # Adjust range as needed
-    result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=range_).execute()
-    values = result.get('values', [])
-
-    matching_rows = []
-    column_indices = [ord(col.upper()) - ord('A') for col in columns]
-
-    for row_index, row in enumerate(values, start=1):
-        for index in column_indices:
-            if len(row) > index and search_query in row[index]:
-                matching_rows.append({'index': row_index, 'student': row})
-                break
-    if matching_rows != []:
-        return jsonify({'status': 'success', 'matches': matching_rows})
-    else:
-        return jsonify({'status': 'false', 'matches': '0'})
 
 def handle_CustomElement(params):
     search_query = params.get('mo').strip()
