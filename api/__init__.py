@@ -12,17 +12,14 @@ CORS(app)  # This will enable CORS for all routes and origins
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 SERVICE_ACCOUNT_BASE64 = os.environ.get('GOOGLE_SERVICE_ACCOUNT')
 SERVICE_ACCOUNT_JSON = base64.b64decode(SERVICE_ACCOUNT_BASE64).decode('utf-8')
-
-credentials = Credentials.from_service_account_info(
-    json.loads(SERVICE_ACCOUNT_JSON), scopes=SCOPES)
-service = build('sheets', 'v4', credentials=credentials)
-
-SPREADSHEET_ID = '1Q4oOByDmCIgPzjhmzpPvotRXY_Ka3fLVFnNeSbrHUKo'  # Replace with your Google Sheets ID
-#gspread
 SERVICE_ACCOUNT_INFO = json.loads(SERVICE_ACCOUNT_JSON)
+
 creds = Credentials.from_service_account_info(SERVICE_ACCOUNT_INFO, scopes=SCOPES)
 client = gspread.authorize(creds)
-sheet = client.open('roter-app-2025')
+service = build('sheets', 'v4', credentials=creds)
+
+SPREADSHEET_ID = '1Q4oOByDmCIgPzjhmzpPvotRXY_Ka3fLVFnNeSbrHUKo'
+sheet = client.open_by_key(SPREADSHEET_ID)
 
 @app.route('/api/sheets', methods=['POST'])
 def update_sheet():
