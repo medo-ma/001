@@ -129,39 +129,37 @@ def change_pass():
 @app.route('/api/sheets/update-status', methods=['POST'])
 def update_status():
     data = request.get_json()
-    
+    print("Received data:", data)  # Log incoming data
+
     row_index = data.get('row_index')
     scode = data.get('scode')
     status = data.get('status')
     dates_str = data.get('dates')
     type_v = data.get('type')
-    
+
     if not row_index or not scode or not status or not dates_str:
         return jsonify({'error': 'Row index, scode, status, and dates are required'}), 400
 
     try:
         # Open the spreadsheet
         spreadsheet = client.open_by_key(SPREADSHEET_ID)
-        
-        # Prepare batch update requests
-        batch_updates = []
 
         # Update the status in the "Requests-{type_v}" sheet
         status_range = f'Requests-{type_v}!D{row_index}'  # Column D
-        batch_updates.append({
-            'range': status_range,
-            'values': [[status]]
-        })
+        spreadsheet.values_update(
+            status_range,
+            params={'valueInputOption': 'USER_ENTERED'},
+            body={'values': [[status]]}
+        )
 
         if status != 'Approved':
             # If the status is not "Approved", skip vacation days update
-            spreadsheet.batch_update(batch_updates)
             return jsonify({'status': 'success'})
 
         # Parse the month from dates_str
         month = json.loads(dates_str).get('first', {}).get('month', '1')
         sheet_page = f'Sheet{int(month)}'  # Format month as Sheet{month}
-        
+
         # Get the vacation sheet by month
         vacation_sheet = spreadsheet.worksheet(sheet_page)
 
@@ -174,14 +172,14 @@ def update_status():
 
         # Map days to columns
         day_to_column = {
-            1: 'D', 2: 'E', 3: 'F', 4: 'G', 5: 'H', 6: 'I', 7: 'J', 8: 'K', 
-            9: 'L', 10: 'M', 11: 'N', 12: 'O', 13: 'P', 14: 'Q', 15: 'R', 
-            16: 'S', 17: 'T', 18: 'U', 19: 'V', 20: 'W', 21: 'X', 22: 'Y', 
-            23: 'Z', 24: 'AA', 25: 'AB', 26: 'AC', 27: 'AD', 28: 'AE', 
+            1: 'D', 2: 'E', 3: 'F', 4: 'G', 5: 'H', 6: 'I', 7: 'J', 8: 'K',
+            9: 'L', 10: 'M', 11: 'N', 12: 'O', 13: 'P', 14: 'Q', 15: 'R',
+            16: 'S', 17: 'T', 18: 'U', 19: 'V', 20: 'W', 21: 'X', 22: 'Y',
+            23: 'Z', 24: 'AA', 25: 'AB', 26: 'AC', 27: 'AD', 28: 'AE',
             29: 'AF', 30: 'AG', 31: 'AH'
         }
 
-        # Parse dates and prepare vacation day updates
+        # Parse dates and update vacation days individually
         date_values = json.loads(dates_str)
         for key in date_values.keys():
             day = int(date_values[key]['day'])
@@ -189,29 +187,23 @@ def update_status():
             if not column_letter:
                 continue  # Skip if day is out of range
 
-            # Add vacation day update to batch
+            # Update the vacation day cell
             vacation_range = f'{sheet_page}!{column_letter}{vacation_row_index}'
-            batch_updates.append({
-                'range': vacation_range,
-                'values': [[type_v]]
-            })
+            vacation_values = [[type_v]]
+            vacation_body = {'values': vacation_values}
 
-        # Create the body for batch_update
-        body = {
-            'data': batch_updates,
-            'valueInputOption': 'USER_ENTERED'  # or 'RAW' depending on your needs
-        }
-
-        # Debug: Print the body before sending
-        print(json.dumps(body, indent=4))
-
-        # Execute batch update request
-        spreadsheet.batch_update(body)
+            spreadsheet.values_update(
+                vacation_range,
+                params={'valueInputOption': 'USER_ENTERED'},
+                body=vacation_body
+            )
 
         return jsonify({'status': 'success'})
 
     except Exception as e:
+        print(f"Error occurred: {str(e)}")  # Print the error for debugging
         return jsonify({'error': str(e)}), 500
+
 
 #sign_in
 @app.route('/api/sheets/sign_in', methods=['POST'])
