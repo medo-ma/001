@@ -126,81 +126,85 @@ def change_pass():
 
 
 #admin
+
 @app.route('/api/sheets/update-status', methods=['POST'])
 def update_status():
     data = request.get_json()
-
+    
     row_index = data.get('row_index')
     scode = data.get('scode')
     status = data.get('status')
     dates_str = data.get('dates')
     type_v = data.get('type')
-
+    
     if not row_index or not scode or not status or not dates_str:
         return jsonify({'error': 'Row index, scode, status, and dates are required'}), 400
 
     try:
-        # Open the Google Sheet
-        sheet = client.open_by_key(SPREADSHEET_ID)
+        # Open the spreadsheet
+        spreadsheet = client.open_by_key(SPREADSHEET_ID)
+        
+        # Prepare batch update requests
+        batch_updates = []
 
-        # Prepare the batch update requests
-        requests = []
-
-        # Update the status in the "Requests-C" sheet
-        status_range = f'Requests-{type_v}!D{row_index}'  # Status column D
-        requests.append({
+        # Update the status in the "Requests-{type_v}" sheet
+        status_range = f'Requests-{type_v}!D{row_index}'  # Column D
+        batch_updates.append({
             'range': status_range,
             'values': [[status]]
         })
 
-        if status == 'Approved':
-            # Find the correct row in the sheet with vacation days
-            month = json.loads(dates_str).get('first', {}).get('month', '1')
-            sheet_page = f'Sheet{int(month)}'  # Format month as Sheet{month}
-            vacation_range = f'{sheet_page}!A:A'  # Search in column A
-            vacation_sheet = sheet.worksheet(sheet_page)
-            values = vacation_sheet.col_values(1)
+        if status != 'Approved':
+            # If the status is not "Approved", skip vacation days update
+            spreadsheet.batch_update(batch_updates)
+            return jsonify({'status': 'success'})
 
-            vacation_row_index = None
-            # Find the row index where scode matches in the vacation sheet column A
-            for i, row in enumerate(values, start=1):
-                if row == scode:
-                    vacation_row_index = i
-                    break
+        # Parse the month from dates_str
+        month = json.loads(dates_str).get('first', {}).get('month', '1')
+        sheet_page = f'Sheet{int(month)}'  # Format month as Sheet{month}
+        
+        # Get the vacation sheet by month
+        vacation_sheet = spreadsheet.worksheet(sheet_page)
 
-            if vacation_row_index is None:
-                return jsonify({'error': 'Student code not found in vacation sheet'}), 404
+        # Find the row in column A where scode matches
+        vacation_codes = vacation_sheet.col_values(1)  # Column A
+        try:
+            vacation_row_index = vacation_codes.index(scode) + 1  # Adding 1 because gspread is 1-indexed
+        except ValueError:
+            return jsonify({'error': 'Student code not found in vacation sheet'}), 404
 
-            # Map days to columns
-            day_to_column = {
-                1: 'D', 2: 'E', 3: 'F', 4: 'G', 5: 'H', 6: 'I', 7: 'J', 8: 'K',
-                9: 'L', 10: 'M', 11: 'N', 12: 'O', 13: 'P', 14: 'Q', 15: 'R',
-                16: 'S', 17: 'T', 18: 'U', 19: 'V', 20: 'W', 21: 'X', 22: 'Y',
-                23: 'Z', 24: 'AA', 25: 'AB', 26: 'AC', 27: 'AD', 28: 'AE',
-                29: 'AF', 30: 'AG', 31: 'AH'
-            }
-
-            # Parse dates and mark vacation days
-            date_values = json.loads(dates_str)
-            for key in date_values.keys():
-                day = int(date_values[key]['day'])
-                column_letter = day_to_column.get(day)
-                if not column_letter:
-                    continue
-                vacation_range = f'{sheet_page}!{column_letter}{vacation_row_index}'
-                requests.append({
-                    'range': vacation_range,
-                    'values': [[type_v]]
-                })
-
-        # Execute the batch update
-        body = {
-            'valueInputOption': 'RAW',
-            'data': requests
+        # Map days to columns
+        day_to_column = {
+            1: 'D', 2: 'E', 3: 'F', 4: 'G', 5: 'H', 6: 'I', 7: 'J', 8: 'K', 
+            9: 'L', 10: 'M', 11: 'N', 12: 'O', 13: 'P', 14: 'Q', 15: 'R', 
+            16: 'S', 17: 'T', 18: 'U', 19: 'V', 20: 'W', 21: 'X', 22: 'Y', 
+            23: 'Z', 24: 'AA', 25: 'AB', 26: 'AC', 27: 'AD', 28: 'AE', 
+            29: 'AF', 30: 'AG', 31: 'AH'
         }
-        sheet.batch_update(body['data'])
+
+        # Parse dates and prepare vacation day updates
+        date_values = json.loads(dates_str)
+        for key in date_values.keys():
+            day = int(date_values[key]['day'])
+            column_letter = day_to_column.get(day)  # Map day to column letter
+            if not column_letter:
+                continue  # Skip if day is out of range
+
+            # Add vacation day update to batch
+            vacation_range = f'{sheet_page}!{column_letter}{vacation_row_index}'
+            batch_updates.append({
+                'range': vacation_range,
+                'values': [[type_v]]
+            })
+
+        # Debug: Print the batch updates before sending
+        print(json.dumps(batch_updates, indent=4))
+
+        # Execute batch update request
+        spreadsheet.batch_update(batch_updates)
 
         return jsonify({'status': 'success'})
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
