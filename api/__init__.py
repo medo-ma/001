@@ -195,7 +195,7 @@ def update_status():
 
         # Execute the batch update
         body = {
-            'value_input_option': 'RAW',
+            'valueInputOption': 'RAW',
             'data': requests
         }
         sheet.batch_update(body['data'])
@@ -203,7 +203,6 @@ def update_status():
         return jsonify({'status': 'success'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
 
 #sign_in
 @app.route('/api/sheets/sign_in', methods=['POST'])
