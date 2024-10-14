@@ -126,7 +126,7 @@ def change_pass():
 
 
 #admin
-'your_spreadsheet_id'
+
 
 @app.route('/api/sheets/update-status', methods=['POST'])
 def update_status():
@@ -196,11 +196,7 @@ def update_status():
                 })
 
         # Execute the batch update
-        batch_update_requests = {
-            'value_input_option': 'RAW',
-            'data': requests
-        }
-        sheet.batch_update(batch_update_requests)
+        sheet.batch_update(requests)
 
         return jsonify({'status': 'success'})
     except Exception as e:
