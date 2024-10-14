@@ -126,7 +126,6 @@ def change_pass():
 
 
 #admin
-
 @app.route('/api/sheets/update-status', methods=['POST'])
 def update_status():
     data = request.get_json()
@@ -197,11 +196,17 @@ def update_status():
                 'values': [[type_v]]
             })
 
-        # Debug: Print the batch updates before sending
-        print(json.dumps(batch_updates, indent=4))
+        # Create the body for batch_update
+        body = {
+            'data': batch_updates,
+            'valueInputOption': 'USER_ENTERED'  # or 'RAW' depending on your needs
+        }
+
+        # Debug: Print the body before sending
+        print(json.dumps(body, indent=4))
 
         # Execute batch update request
-        spreadsheet.batch_update(batch_updates)
+        spreadsheet.batch_update(body)
 
         return jsonify({'status': 'success'})
 
