@@ -7,4 +7,4 @@ gspread
 oauth2client
 google-auth-oauthlib
 google-auth-httplib2
-dotenv
+python-dotenv==1.0.0
