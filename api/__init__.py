@@ -155,7 +155,10 @@ def update_status():
 
         if status != 'Approved':
             # If the status is not "Approved", skip vacation days update
-            spreadsheet.batch_update({'valueInputOption': 'RAW', 'data': batch_updates})
+            spreadsheet.batch_update({
+                'valueInputOption': 'RAW',
+                'data': batch_updates
+            })
             return jsonify({'status': 'success'})
 
         # Parse the month from dates_str
