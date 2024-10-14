@@ -146,7 +146,7 @@ def update_status():
         spreadsheet = client.open_by_key(SPREADSHEET_ID)
 
         # Update the status in the "Requests-{type_v}" sheet
-        status_range = f'Requests-{type_v}!D{row_index}'  # Column D
+        status_range = f'Requests!D{row_index}'  # Column D
         spreadsheet.values_update(
             status_range,
             params={'valueInputOption': 'USER_ENTERED'},
