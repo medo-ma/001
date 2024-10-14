@@ -7,23 +7,36 @@ import json  # Import the json module
 import base64
 import os
 from datetime import datetime
+from dotenv import load_dotenv , dotenv_values
 
+#load the keys from .env 
+load_dotenv()
+
+#create app's instance
 app = Flask(__name__)
+
 CORS(app)  # This will enable CORS for all routes and origins
 
+#google authncation 
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-SERVICE_ACCOUNT_BASE64 = os.environ.get('GOOGLE_SERVICE_ACCOUNT')
-SERVICE_ACCOUNT_JSON = base64.b64decode(SERVICE_ACCOUNT_BASE64).decode('utf-8')
-SERVICE_ACCOUNT_INFO = json.loads(SERVICE_ACCOUNT_JSON)
+
+SERVICE_ACCOUNT_BASE64 = os.environ.get('GOOGLE_SERVICE_ACCOUNT') #load the creds from the key 
+
+SERVICE_ACCOUNT_JSON = base64.b64decode(SERVICE_ACCOUNT_BASE64).decode('utf-8') #decoding step 
+
+SERVICE_ACCOUNT_INFO = json.loads(SERVICE_ACCOUNT_JSON) #final result > account info for creds
 
 creds = Credentials.from_service_account_info(SERVICE_ACCOUNT_INFO, scopes=SCOPES)
 client = gspread.authorize(creds)
 service = build('sheets', 'v4', credentials=creds)
 
-SPREADSHEET_ID = '1Q4oOByDmCIgPzjhmzpPvotRXY_Ka3fLVFnNeSbrHUKo'
+SPREADSHEET_ID = '1Q4oOByDmCIgPzjhmzpPvotRXY_Ka3fLVFnNeSbrHUKo' #sheet id
+
+#the selection of the sheet's page, depending on the current month
 current_month = datetime.now().month
-sheet_name = f'Sheet{current_month}'
-sheet = client.open_by_key(SPREADSHEET_ID).worksheet(sheet_name)
+sheet_page = f'Sheet{current_month}'
+
+sheet = client.open_by_key(SPREADSHEET_ID).worksheet(sheet_page) #sheet var for easy calling 
 
 @app.route('/api/sheets', methods=['POST'])
 def update_sheet():
@@ -127,39 +140,36 @@ def update_status():
         return jsonify({'error': 'Row index, scode, status, and dates are required'}), 400
 
     try:
-        # Update the status in the "Requests-C" sheet
-        status_range = f'Requests-{type_v}!D{row_index}'  # Status column D
-        status_body = {'values': [[status]]}
-        service.spreadsheets().values().update(
-            spreadsheetId=SPREADSHEET_ID,
-            range=status_range,
-            valueInputOption='RAW',
-            body=status_body
-        ).execute()
+        # Open the spreadsheet
+        spreadsheet = client.open_by_key(SPREADSHEET_ID)
+        
+        # Prepare batch update requests
+        batch_updates = []
+
+        # Update the status in the "Requests-{type_v}" sheet
+        status_range = f'Requests-{type_v}!D{row_index}'  # Column D
+        batch_updates.append({
+            'range': status_range,
+            'values': [[status]]
+        })
 
         if status != 'Approved':
-            # If the status is not "Approved", do not update vacation days
+            # If the status is not "Approved", skip vacation days update
+            spreadsheet.batch_update({'valueInputOption': 'RAW', 'data': batch_updates})
             return jsonify({'status': 'success'})
 
-        # Find the correct row in the sheet with vacation days
+        # Parse the month from dates_str
         month = json.loads(dates_str).get('first', {}).get('month', '1')
-        sheet_name = f'Sheet{int(month)}'  # Format month as Sheet{month}
-        vacation_range = f'{sheet_name}!A:A'  # Search in column A
-        result = service.spreadsheets().values().get(
-            spreadsheetId=SPREADSHEET_ID,
-            range=vacation_range
-        ).execute()
+        sheet_page = f'Sheet{int(month)}'  # Format month as Sheet{month}
         
-        values = result.get('values', [])
-        vacation_row_index = None
+        # Get the vacation sheet by month
+        vacation_sheet = spreadsheet.worksheet(sheet_page)
 
-        # Find the row index where scode matches in the vacation sheet column A
-        for i, row in enumerate(values, start=1):  # Start from row 1
-            if row and len(row) > 0 and row[0] == scode:
-                vacation_row_index = i
-                break
-        
-        if vacation_row_index is None:
+        # Find the row in column A where scode matches
+        vacation_codes = vacation_sheet.col_values(1)  # Column A
+        try:
+            vacation_row_index = vacation_codes.index(scode) + 1  # Adding 1 because gspread is 1-indexed
+        except ValueError:
             return jsonify({'error': 'Student code not found in vacation sheet'}), 404
 
         # Map days to columns
@@ -170,8 +180,8 @@ def update_status():
             23: 'Z', 24: 'AA', 25: 'AB', 26: 'AC', 27: 'AD', 28: 'AE', 
             29: 'AF', 30: 'AG', 31: 'AH'
         }
-        
-        # Parse dates and mark vacation days
+
+        # Parse dates and prepare vacation day updates
         date_values = json.loads(dates_str)
         for key in date_values.keys():
             day = int(date_values[key]['day'])
@@ -179,25 +189,26 @@ def update_status():
             if not column_letter:
                 continue  # Skip if day is out of range
 
-            # Update the vacation day cell in the correct sheet and row
-            vacation_range = f'{sheet_name}!{column_letter}{vacation_row_index}'  # Convert column number to letter
-            vacation_values = [[type_v]]
-            vacation_body = {'values': vacation_values}
+            # Add vacation day update to batch
+            vacation_range = f'{sheet_page}!{column_letter}{vacation_row_index}'
+            batch_updates.append({
+                'range': vacation_range,
+                'values': [[type_v]]
+            })
 
-            # Use Google Sheets API to update the vacation day cell
-            service.spreadsheets().values().update(
-                spreadsheetId=SPREADSHEET_ID,
-                range=vacation_range,
-                valueInputOption='RAW',
-                body=vacation_body
-            ).execute()
+        # Execute batch update request
+        body = {
+            'valueInputOption': 'RAW',
+            'data': batch_updates
+        }
+        spreadsheet.batch_update(body)
 
         return jsonify({'status': 'success'})
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-#
+#sign_in
 @app.route('/api/sheets/sign_in', methods=['POST'])
 def sign_in():
     data = request.get_json()
@@ -267,7 +278,7 @@ def handle_search(params):
         return jsonify({'error': 'No search query provided'}), 400
 
     sheet = service.spreadsheets()
-    range_ = f'{sheet_name}!A1:BZ1000'  # Adjust range as needed
+    range_ = f'{sheet_page}!A1:BZ1000'  # Adjust range as needed
     result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=range_).execute()
     values = result.get('values', [])
 
