@@ -155,6 +155,7 @@ def update_status():
 
         if status != 'Approved':
             # If the status is not "Approved", skip vacation days update
+            print(json.dumps(batch_updates, indent=4))  # Debug: print batch_updates
             spreadsheet.batch_update(batch_updates)
             return jsonify({'status': 'success'})
 
@@ -195,6 +196,9 @@ def update_status():
                 'range': vacation_range,
                 'values': [[type_v]]
             })
+
+        # Debug: Print the batch updates before sending
+        print(json.dumps(batch_updates, indent=4))
 
         # Execute batch update request
         spreadsheet.batch_update(batch_updates)
