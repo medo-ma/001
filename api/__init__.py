@@ -304,14 +304,14 @@ def handle_CustomElement(params):
 
     return jsonify({'status': 'success', 'mo': values})
 
-@app.route('/api/sheets/student-requests_c', methods=['GET'])
+@app.route('/api/sheets/student-requests', methods=['GET'])
 def get_student_requests_c():
     scode = request.args.get('scode')
     if not scode:
         return jsonify({'error': 'Student code is required'}), 400
 
     # Define the range to fetch (e.g., columns A to D)
-    range_ = 'Requests-C!A:D'
+    range_ = 'Requests!A:E'
 
     try:
         # Use Google Sheets API to get the data
@@ -335,7 +335,8 @@ def get_student_requests_c():
                     'scode': row[0],     # Student code
                     'sname': row[1],     # Student name
                     'dates': row[2],     # Vacation dates (can be stored as JSON or a combined string)
-                    'status': row[3]     # Status (Pending, Approved, Rejected)
+                    'status': row[3],     # Status (Pending, Approved, Rejected)
+                    'type' :row[4]
                 })
 
         if not student_requests_c:
